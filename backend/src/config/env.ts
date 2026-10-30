@@ -61,7 +61,11 @@ if (isProd && (!jwtSecret || jwtSecret.length < 32)) {
   throw new Error("JWT_SECRET must be set to at least 32 characters in production");
 }
 
-const frontendUrl = (raw.FRONTEND_URL ?? raw.APP_BASE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+const configuredFrontendUrl = raw.FRONTEND_URL ?? raw.APP_BASE_URL;
+if (isProd && !configuredFrontendUrl) {
+  throw new Error("APP_BASE_URL must be set to the public frontend URL in production");
+}
+const frontendUrl = (configuredFrontendUrl ?? "http://localhost:3000").trim().replace(/\/+$/, "");
 
 export const env = {
   ...raw,
