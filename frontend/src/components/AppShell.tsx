@@ -20,7 +20,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const links: { href: string; label: string; icon?: LucideIcon }[] = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/goals", label: "Goals" },
-    { href: "/assistant", label: "Assistant", icon: MessageSquare },
+    { href: "/assistant", label: "Ask HDOS AI", icon: MessageSquare },
     { href: "/explore", label: "Explore" },
     { href: "/insights", label: "Insights" },
     { href: "/profile", label: "My profile" },
