@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AuthCard } from "@/components/AuthCard";
+import { PasswordInput } from "@/components/PasswordInput";
 import { FormError } from "@/components/States";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,7 +75,7 @@ export default function RegisterPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" autoComplete="new-password" required aria-describedby="pw-rules" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+          <PasswordInput id="password" autoComplete="new-password" required aria-describedby="pw-rules" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           <ul id="pw-rules" className="grid grid-cols-2 gap-x-2 text-xs">
             {RULES.map((r) => (
               <li key={r.label} className={cn(r.test(form.password) ? "text-green-700" : "text-muted-foreground")}>

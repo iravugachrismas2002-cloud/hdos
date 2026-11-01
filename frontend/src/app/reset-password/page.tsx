@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { AuthCard } from "@/components/AuthCard";
+import { PasswordInput } from "@/components/PasswordInput";
 import { FormError, FormSuccess } from "@/components/States";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,12 +56,12 @@ function ResetPassword() {
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="password">New password</Label>
-            <Input id="password" type="password" autoComplete="new-password" required aria-describedby="hint" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <PasswordInput id="password" autoComplete="new-password" required aria-describedby="hint" value={password} onChange={(e) => setPassword(e.target.value)} />
             <p id="hint" className="text-xs text-muted-foreground">At least 8 characters with uppercase, lowercase and a number.</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirm">Confirm password</Label>
-            <Input id="confirm" type="password" autoComplete="new-password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            <PasswordInput id="confirm" autoComplete="new-password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
             {confirm && confirm !== password && <p role="alert" className="text-xs text-destructive">Passwords do not match.</p>}
           </div>
           <Button type="submit" className="w-full" disabled={busy || !strong(password) || password !== confirm}>
