@@ -10,6 +10,7 @@ const storagePath = (userId: string, id: string) => path.join(root, createHash("
 export const sha256 = (data: Buffer) => createHash("sha256").update(data).digest("hex");
 
 export async function putDocument(userId: string, id: string, data: Buffer): Promise<string> {
+  if (!env.DOCUMENT_ENCRYPTION_CONFIGURED) throw new Error("Document encryption is not configured");
   const iv = randomBytes(12); const cipher = createCipheriv("aes-256-gcm", key, iv);
   const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
   const file = storagePath(userId, id); await mkdir(path.dirname(file), { recursive: true });
@@ -18,6 +19,7 @@ export async function putDocument(userId: string, id: string, data: Buffer): Pro
 }
 
 export async function getDocument(userId: string, id: string): Promise<Buffer> {
+  if (!env.DOCUMENT_ENCRYPTION_CONFIGURED) throw new Error("Document encryption is not configured");
   const payload = await readFile(storagePath(userId, id));
   if (payload.subarray(0, 5).toString() !== "HDOC1") throw new Error("Invalid encrypted document");
   const decipher = createDecipheriv("aes-256-gcm", key, payload.subarray(5, 17));
