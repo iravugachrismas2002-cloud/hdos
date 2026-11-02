@@ -18,6 +18,7 @@ const STORAGE_KEY = "hdos-ui-preferences";
 const translations: Record<Language, Record<string, string>> = {
   en: {},
   rw: {
+    "HDOS is starting…": "HDOS irimo gutangira…", "Please wait a few moments. The first request can take up to a minute on the free plan.": "Tegereza gato. Ku buntu, ubusabe bwa mbere bushobora kumara umunota.",
     "YOUR JOURNEY": "URUGENDO RWAWE", "DISCOVER & DECIDE": "SHAKA UNAFATE ICYEMEZO", "TAKE ACTION": "FATA INGAMBA",
     "ADMINISTRATION": "UBUYOBOZI", "Command centre": "Ahakorerwa ibikorwa", "Goals & roadmap": "Intego n'inzira", "Life DNA": "Umwirondoro wanjye",
     "Opportunities": "Amahirwe", "Workforce insights": "Isesengura ry'isoko ry'umurimo", "Decision assistant": "Umujyanama mu byemezo",
@@ -48,6 +49,7 @@ const translations: Record<Language, Record<string, string>> = {
     "Good day": "Mwaramutse", "Turn your next ambition into a clear, achievable plan. Your opportunities and progress, all in one place.": "Hindura intego yawe gahunda isobanutse kandi ishoboka. Amahirwe yawe n'iterambere biri hamwe.", "Build your next step": "Tegura intambwe ikurikira", "Goals": "Intego", "Each goal gets its own recommendations and roadmap.": "Buri ntego igira ibyifuzo n'inzira yayo.", "New goal": "Intego nshya", "No goals yet": "Nta ntego zirahari", "Everything here is editable and is the only personal data used to personalise your results.": "Ibyo byose ushobora kubihindura; ni byo byonyine by'amakuru yawe akoreshwa mu kugena ibisubizo.", "National insights": "Isesengura ry'igihugu", "Official statistics, cited. This is the evidence base behind HDOS's national-priority signals.": "Imibare yemewe ifite aho yavuye. Ni yo shingiro ry'ibyihutirwa HDOS igaragaza.", "Main navigation": "Imbonerahamwe nyamukuru", "Mobile navigation": "Imbonerahamwe ya telefoni", "HDOS support": "Ubufasha bwa HDOS", "Your account": "Konti yawe",
   },
   fr: {
+    "HDOS is starting…": "HDOS démarre…", "Please wait a few moments. The first request can take up to a minute on the free plan.": "Veuillez patienter quelques instants. Sur l'offre gratuite, la première requête peut prendre jusqu'à une minute.",
     "YOUR JOURNEY": "VOTRE PARCOURS", "DISCOVER & DECIDE": "DÉCOUVRIR ET DÉCIDER", "TAKE ACTION": "PASSER À L'ACTION",
     "ADMINISTRATION": "ADMINISTRATION", "Command centre": "Centre de pilotage", "Goals & roadmap": "Objectifs et parcours", "Life DNA": "Mon profil",
     "Opportunities": "Opportunités", "Workforce insights": "Analyse du marché du travail", "Decision assistant": "Assistant décisionnel",

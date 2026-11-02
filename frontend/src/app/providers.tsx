@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppearanceProvider } from "@/contexts/AppearanceContext";
+import { ApiStartupNotice } from "@/components/ApiStartupNotice";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [client] = useState(
@@ -14,6 +15,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <AppearanceProvider>
       <QueryClientProvider client={client}>
         <AuthProvider>{children}</AuthProvider>
+        <ApiStartupNotice />
       </QueryClientProvider>
     </AppearanceProvider>
   );

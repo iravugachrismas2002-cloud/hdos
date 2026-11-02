@@ -16,7 +16,36 @@ export const setSessionLostHandler = (handler: (() => void) | null) => {
 
 const http = axios.create({ baseURL: "/api", withCredentials: true, headers: { "Content-Type": "application/json" } });
 
+let pendingRequests = 0;
+let slowRequestTimer: ReturnType<typeof setTimeout> | undefined;
+let startupNoticeVisible = false;
+
+const emitStartupNotice = (visible: boolean) => {
+  if (typeof window === "undefined" || startupNoticeVisible === visible) return;
+  startupNoticeVisible = visible;
+  window.dispatchEvent(new CustomEvent("hdos:api-starting", { detail: visible }));
+};
+
+const requestStarted = () => {
+  pendingRequests += 1;
+  if (pendingRequests === 1) {
+    slowRequestTimer = setTimeout(() => {
+      if (pendingRequests > 0) emitStartupNotice(true);
+    }, 8000);
+  }
+};
+
+const requestFinished = () => {
+  pendingRequests = Math.max(0, pendingRequests - 1);
+  if (pendingRequests === 0) {
+    if (slowRequestTimer) clearTimeout(slowRequestTimer);
+    slowRequestTimer = undefined;
+    emitStartupNotice(false);
+  }
+};
+
 http.interceptors.request.use((config) => {
+  requestStarted();
   if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
   return config;
 });
@@ -40,7 +69,13 @@ export const refreshSession = (): Promise<Session> => {
   return refreshing;
 };
 
-http.interceptors.response.use(undefined, async (error: AxiosError<T.ApiErrorBody>) => {
+http.interceptors.response.use(
+  (response) => {
+    requestFinished();
+    return response;
+  },
+  async (error: AxiosError<T.ApiErrorBody>) => {
+  requestFinished();
   const original = error.config as (InternalAxiosRequestConfig & { _retried?: boolean }) | undefined;
   if (error.response?.status === 401 && error.response.data?.error?.code === "TOKEN_EXPIRED" && original && !original._retried) {
     original._retried = true;
@@ -53,7 +88,8 @@ http.interceptors.response.use(undefined, async (error: AxiosError<T.ApiErrorBod
     }
   }
   return Promise.reject(error);
-});
+  },
+);
 
 /** Extracts the API's `{ error: { message } }` envelope, falling back to a generic message. */
 export const getErrorMessage = (error: unknown, fallback = "Something went wrong. Please try again."): string => {
