@@ -116,7 +116,6 @@ export const catalogApi = {
   programs: (params: Record<string, unknown>) => list<T.Program>("/catalog/programs", params),
   opportunities: (params: Record<string, unknown>) => list<T.Opportunity>("/catalog/opportunities", params),
   opportunitySources: () => get<T.OpportunitySource[]>("/catalog/opportunity-sources"),
-  liveOpportunities: (params: Record<string, unknown>) => get<T.LiveOpportunityFeed>("/catalog/live-opportunities", { params }),
   paths: (params: Record<string, unknown>) => list<T.PathSummary>("/catalog/paths", params),
   path: (slug: string) => get<T.PathDetail>(`/catalog/paths/${encodeURIComponent(slug)}`),
 };
@@ -124,7 +123,6 @@ export const catalogApi = {
 export const applicationsApi = {
   list: () => get<Array<{ id: string; status: string; notes: string | null; updatedAt: string; submittedAt:string|null; receiptReference:string|null; events:{id:string;status:string;detail:string|null;createdAt:string}[]; opportunity: T.Opportunity }>>("/applications"),
   create: (opportunityId: string) => send<{ id: string; status: string }>("post", "/applications", { opportunityId }),
-  trackReliefWebJob: (externalId: string) => send<{ applicationId: string; opportunityId: string; status: string; alreadyTracked: boolean }>("post", `/applications/reliefweb/${encodeURIComponent(externalId)}/track`),
   status: (id: string, status: string, notes?: string, confirmSubmission?:boolean) => send<{ id: string; status: string }>("patch", `/applications/${encodeURIComponent(id)}/status`, { status, notes, confirmSubmission }),
   documents: () => get<Array<{id:string;groupId:string;version:number;kind:string;status:string;fileName:string;mimeType:string;sizeBytes:number;sha256:string;expiresAt:string|null;extractionConfirmedAt:string|null;createdAt:string;extractedText:{text?:string}|null}>>("/applications/documents"),
   uploadDocument: async (file: File, kind: string, replaceId?:string, expiresAt?:string) => { const r = await http.post("/applications/documents", file, { headers: { "Content-Type": file.type, "X-File-Name": file.name, "X-Document-Kind": kind, ...(replaceId?{"X-Replace-Document-Id":replaceId}:{}), ...(expiresAt?{"X-Expires-At":expiresAt}:{}) } }); return r.data.data; },

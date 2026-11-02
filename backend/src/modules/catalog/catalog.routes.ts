@@ -16,8 +16,6 @@ import {
 } from "../../lib/mappers";
 import { validate } from "../../middleware/validate";
 import { OPPORTUNITY_SOURCE_DIRECTORY } from "../../seed/data/opportunitySourceDirectory";
-import { ReliefWebFeedError, searchReliefWebJobs } from "./reliefweb.service";
-import { env } from "../../config/env";
 
 export const catalogRouter = Router();
 
@@ -245,26 +243,6 @@ catalogRouter.get(
       }] : [];
     });
     res.json({ data });
-  }),
-);
-
-catalogRouter.get(
-  "/live-opportunities",
-  validate(paginationSchema.extend({ q: z.string().trim().max(80).optional(), pageSize: z.coerce.number().int().min(1).max(25).default(10) }), "query"),
-  asyncHandler(async (req, res) => {
-    const query = req.query as unknown as { page: number; pageSize: number; q?: string };
-    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
-    if (!env.RELIEFWEB_APP_NAME) {
-      res.json({ data: { status: "NOT_CONFIGURED", message: "Live ReliefWeb listings require an app name approved by ReliefWeb. Set RELIEFWEB_APP_NAME after approval.", sourceUrl: "https://apidoc.reliefweb.int/", items: [], page: query.page, pageSize: query.pageSize, total: 0, fetchedAt: null } });
-      return;
-    }
-    try {
-      const page = await searchReliefWebJobs({ appName: env.RELIEFWEB_APP_NAME, page: query.page, pageSize: query.pageSize, query: query.q });
-      res.json({ data: { status: "CONNECTED", sourceUrl: "https://reliefweb.int/jobs", ...page } });
-    } catch (error) {
-      const message = error instanceof ReliefWebFeedError ? error.message : "Could not load the ReliefWeb feed right now.";
-      throw AppError.unavailable(message, "LIVE_OPPORTUNITY_FEED_UNAVAILABLE");
-    }
   }),
 );
 

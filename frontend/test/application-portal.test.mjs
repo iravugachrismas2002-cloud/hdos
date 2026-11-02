@@ -19,14 +19,10 @@ test("application portal keeps applicant approval in the workflow", async () => 
   assert.match(page, /Record confirmed submission/);
 });
 
-test("opportunity explorer links to verified job, scholarship, learning and business sources", async () => {
+test("opportunity explorer links to job, scholarship, learning and business sources", async () => {
   const page = await readFile(new URL("../src/app/(app)/explore/page.tsx", import.meta.url), "utf8");
   const api = await readFile(new URL("../src/lib/api.ts", import.meta.url), "utf8");
   assert.match(page, /Opportunity sources/);
   assert.match(page, /Open provider site/);
-  assert.match(page, /Live humanitarian jobs in Rwanda/);
-  assert.match(page, /Track in HDOS/);
-  assert.match(page, /API approval is configured/);
   assert.match(api, /opportunity-sources/);
-  assert.match(api, /live-opportunities/);
 });

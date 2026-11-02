@@ -93,7 +93,7 @@ describe("seed: opportunity source directory", () => {
   it("references known, linked, non-illustrative source records", () => {
     expect(OPPORTUNITY_SOURCE_DIRECTORY.length).toBeGreaterThanOrEqual(8);
     expect(dupes(OPPORTUNITY_SOURCE_DIRECTORY.map((entry) => entry.sourceSlug))).toEqual([]);
-    for (const slug of ["opportunity-in-rwanda", "unjobs-rwanda", "job-in-rwanda", "reliefweb-jobs", "ingazi-skills", "rdb-registrar-general"]) {
+    for (const slug of ["opportunity-in-rwanda", "unjobs-rwanda", "job-in-rwanda", "ingazi-skills", "rdb-registrar-general"]) {
       expect(OPPORTUNITY_SOURCE_DIRECTORY.some((entry) => entry.sourceSlug === slug), slug).toBe(true);
     }
     for (const entry of OPPORTUNITY_SOURCE_DIRECTORY) {

@@ -48,8 +48,6 @@ const schema = z.object({
   DOCUMENT_MAX_BYTES: z.coerce.number().int().positive().default(10485760),
   CLAMAV_HOST: z.string().default(""),
   CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
-  // ReliefWeb requires a pre-approved appname on every API request. Never invent a production value.
-  RELIEFWEB_APP_NAME: z.string().trim().min(8).max(120).optional(),
 
   ANALYTICS_MIN_COHORT: z.coerce.number().int().min(1).default(10),
 });

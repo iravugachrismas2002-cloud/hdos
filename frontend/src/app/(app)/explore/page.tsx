@@ -3,19 +3,17 @@
 
 import { useState } from "react";
 import { ExternalLink } from "lucide-react";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Pagination } from "@/components/Pagination";
 import { PathsExplorer } from "@/components/PathsExplorer";
 import { SourceBadge } from "@/components/SourceBadge";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/States";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { catalogApi } from "@/lib/api";
-import { applicationsApi, getErrorMessage } from "@/lib/api";
 import { DEMAND_LABELS, EDUCATION_LABELS, EDUCATION_LEVELS, OPPORTUNITY_LABELS, formatDate, formatNumber } from "@/lib/format";
 import { useDistricts, useSectors } from "@/lib/hooks";
 import type { DemandLevel, InstitutionType, OpportunityType } from "@/lib/types";
@@ -159,28 +157,15 @@ function Programmes() {
 }
 
 function Opportunities() {
-  const queryClient = useQueryClient();
   const [q, setQ] = useState("");
   const [type, setType] = useState("");
   const [page, setPage] = useState(1);
   const params = { q: q || undefined, type: type || undefined, page, pageSize: 10 };
   const res = useQuery({ queryKey: ["opportunities", params], queryFn: () => catalogApi.opportunities(params), placeholderData: keepPreviousData });
-  const [livePage, setLivePage] = useState(1);
-  const liveParams = { q: q || undefined, page: livePage, pageSize: 10 };
-  const live = useQuery({ queryKey: ["live-opportunities", liveParams], queryFn: () => catalogApi.liveOpportunities(liveParams), placeholderData: keepPreviousData });
-  const [tracked, setTracked] = useState<Record<string, string>>({});
-  const track = useMutation({
-    mutationFn: applicationsApi.trackReliefWebJob,
-    onSuccess: async (result, externalId) => {
-      setTracked((current) => ({ ...current, [externalId]: result.applicationId }));
-      await queryClient.invalidateQueries({ queryKey: ["applications"] });
-    },
-  });
-
   return (
     <div className="space-y-4">
       <Filters>
-        <Field id="op-q" label="Search"><Input id="op-q" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); setLivePage(1); }} /></Field>
+        <Field id="op-q" label="Search"><Input id="op-q" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} /></Field>
         <Field id="op-t" label="Type">
           <Select id="op-t" value={type} onChange={(e) => { setType(e.target.value); setPage(1); }}>
             <option value="">All types</option>
@@ -191,25 +176,6 @@ function Opportunities() {
       <p role="note" className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
         Deadlines and eligibility change every cycle. Always confirm on the provider&apos;s official page before applying.
       </p>
-      {(!type || type === "JOB") && <section className="space-y-3 rounded-2xl border border-blue-200 bg-blue-50/60 p-4" aria-labelledby="reliefweb-title">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div><div className="flex items-center gap-2"><h2 id="reliefweb-title" className="text-lg font-semibold">Live humanitarian jobs in Rwanda</h2>{live.data?.status === "CONNECTED" && <Badge>Live feed</Badge>}</div><p className="mt-1 text-sm text-muted-foreground">ReliefWeb results are fetched from its API and cached briefly. Apply on the original posting.</p></div>
-          <a className="text-sm font-medium text-primary underline" href="https://reliefweb.int/jobs" target="_blank" rel="noopener noreferrer">Browse ReliefWeb <ExternalLink size={13} className="ml-1 inline" aria-hidden="true" /></a>
-        </div>
-        {live.isLoading && <ListSkeleton rows={2} />}
-        {live.isError && <ErrorState error={live.error} onRetry={() => live.refetch()} />}
-        {live.data?.status === "NOT_CONFIGURED" && <div className="rounded-xl border border-amber-300 bg-white p-3 text-sm text-amber-950"><p className="font-semibold">Live feed needs one approved setting</p><p className="mt-1">ReliefWeb requires a pre-approved API app name. Request one from ReliefWeb, then set <code>RELIEFWEB_APP_NAME</code> in Render. Until then, use the provider link above.</p><a className="mt-2 inline-block underline" href={live.data.sourceUrl} target="_blank" rel="noopener noreferrer">ReliefWeb API setup guide <ExternalLink size={12} className="ml-1 inline" aria-hidden="true" /></a></div>}
-        {live.data?.status === "CONNECTED" && <>
-          {live.data.fetchedAt && <p className="text-xs text-muted-foreground">Feed retrieved {new Date(live.data.fetchedAt).toLocaleString()}</p>}
-          {live.data.items.length === 0 && <p className="rounded-xl bg-white p-4 text-sm text-muted-foreground">No matching Rwanda listings were returned. Try another search or check the source page.</p>}
-          <ul className="space-y-2">{live.data.items.map((job) => <li key={job.externalId} className="rounded-xl border bg-white p-3">
-            <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><h3 className="font-semibold">{job.title}</h3><p className="mt-1 text-sm text-muted-foreground">{job.organization}{job.city ? ` · ${job.city}` : ""}{job.country ? ` · ${job.country}` : ""}</p>{job.description && <p className="mt-2 line-clamp-3 text-sm">{job.description}</p>}<p className="mt-2 text-xs text-muted-foreground">{job.closingAt ? `Closes ${formatDate(job.closingAt)}` : "No closing date shown by source"}{job.experience.length ? ` · ${job.experience.join(", ")} experience` : ""}</p><p className="mt-1 text-[11px] text-muted-foreground">Source: ReliefWeb · Confirm vacancy details on the original posting.</p></div><div className="flex shrink-0 flex-col gap-2"><a className="inline-flex items-center justify-center gap-1 text-sm font-semibold text-primary underline" href={job.url} target="_blank" rel="noopener noreferrer">Open vacancy <ExternalLink size={13} aria-hidden="true" /></a><Button size="sm" variant={tracked[job.externalId] ? "secondary" : "outline"} disabled={track.isPending || Boolean(tracked[job.externalId])} onClick={() => track.mutate(job.externalId)}>{tracked[job.externalId] ? "Tracked in HDOS" : "Track in HDOS"}</Button></div></div>
-          </li>)}</ul>
-          {track.isError && <p role="alert" className="text-sm text-rose-700">{getErrorMessage(track.error, "Could not add this job to your application centre.")}</p>}
-          {track.isSuccess && <p role="status" className="text-sm text-emerald-800">Added to your application centre. Review the provider posting for its current requirements before preparing an application.</p>}
-          <Pagination meta={{ page: live.data.page, pageSize: live.data.pageSize, total: live.data.total }} onPage={setLivePage} />
-        </>}
-      </section>}
       {res.isLoading && <ListSkeleton />}
       {res.isError && <ErrorState error={res.error} onRetry={() => res.refetch()} />}
       {res.data?.data.length === 0 && <EmptyState title="No opportunities match these filters" />}
@@ -255,7 +221,7 @@ function OpportunitySources() {
     <div className="space-y-4">
       <div className="max-w-3xl rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
         <h2 className="font-semibold">Opportunity boards and official services</h2>
-        <p className="mt-1">Open a provider to browse its listings or services. HDOS can show live ReliefWeb jobs when its API approval is configured; other boards are external links. Confirm eligibility, deadlines and application instructions on the provider&apos;s page.</p>
+        <p className="mt-1">Open a provider to browse its listings or services. Confirm eligibility, deadlines and application instructions on the provider&apos;s page.</p>
       </div>
       <Field id="source-category" label="Filter by category">
         <Select id="source-category" value={category} onChange={(event) => setCategory(event.target.value)}>
