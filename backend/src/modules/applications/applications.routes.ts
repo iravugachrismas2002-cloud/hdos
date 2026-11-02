@@ -18,6 +18,7 @@ applicationsRouter.get("/documents", asyncHandler(async (req, res) => {
   res.json({ data });
 }));
 applicationsRouter.post("/documents", express.raw({ type: ["application/pdf", "text/plain"], limit: env.DOCUMENT_MAX_BYTES }), asyncHandler(async (req, res) => {
+  if (!env.DOCUMENT_ENCRYPTION_CONFIGURED) throw AppError.unavailable("Document storage is temporarily disabled until encryption is configured", "DOCUMENT_STORAGE_DISABLED");
   if (!Buffer.isBuffer(req.body) || req.body.length < 1) throw AppError.badRequest("Upload a PDF or plain text document");
   const userId = currentUserId(req); const mimeType = req.headers["content-type"] as string;
   const name = Array.from(String(req.headers["x-file-name"] ?? "document"), (char) => /[\\/]/.test(char) || char.charCodeAt(0) < 32 ? "_" : char).join("").slice(0, 180);
@@ -31,6 +32,7 @@ applicationsRouter.post("/documents", express.raw({ type: ["application/pdf", "t
   res.status(201).json({ data: { id: data.id, kind: data.kind, fileName: data.fileName, sizeBytes: data.sizeBytes, extraction: extractedText, verified: false } });
 }));
 applicationsRouter.get("/documents/:id/download", asyncHandler(async (req, res) => {
+  if (!env.DOCUMENT_ENCRYPTION_CONFIGURED) throw AppError.unavailable("Document downloads are temporarily disabled until encryption is configured", "DOCUMENT_STORAGE_DISABLED");
   const row = await prisma.applicantDocument.findFirst({ where: { id: req.params.id, userId: currentUserId(req), deletedAt: null } });
   if (!row) throw AppError.notFound("Document not found");
   const file = await getDocument(row.userId, row.id);

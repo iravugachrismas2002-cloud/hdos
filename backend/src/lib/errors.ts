@@ -32,4 +32,7 @@ export class AppError extends Error {
   static conflict(message: string, code = "CONFLICT") {
     return new AppError(409, code, message);
   }
+  static unavailable(message: string, code = "SERVICE_UNAVAILABLE") {
+    return new AppError(503, code, message);
+  }
 }
