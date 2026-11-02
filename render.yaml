@@ -26,6 +26,9 @@ services:
           property: connectionString
       - key: JWT_ACCESS_SECRET
         generateValue: true
+      # Required in production for AES-256-GCM document encryption. Keep stable across deploys.
+      - key: DOCUMENT_ENCRYPTION_KEY
+        generateValue: true
       # Public URL of the web app, e.g. https://hdos-web.onrender.com (set after the first deploy)
       - key: APP_BASE_URL
         sync: false
