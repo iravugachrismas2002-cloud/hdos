@@ -4,7 +4,7 @@ import { z } from "zod";
 import { AppError } from "../../lib/errors";
 import { asyncHandler } from "../../lib/http";
 import { prisma } from "../../lib/prisma";
-import { authenticate, requireRole } from "../../middleware/auth";
+import { authenticate, currentUserId, requireRole } from "../../middleware/auth";
 import { validate } from "../../middleware/validate";
 
 export const portalAdminRouter = Router();
@@ -23,3 +23,7 @@ portalAdminRouter.post("/connectors", validate(z.object({name:z.string().min(2).
  const data=await prisma.institutionConnector.create({data:{...req.body,enabled:false}});res.status(201).json({data});
 }));
 portalAdminRouter.get("/connectors",asyncHandler(async(_req,res)=>{res.json({data:await prisma.institutionConnector.findMany({select:{id:true,name:true,country:true,kind:true,endpoint:true,enabled:true,createdAt:true}})});}));
+portalAdminRouter.patch("/documents/:id/verification", validate(z.object({status:z.enum(["VERIFIED","REJECTED"]),reason:z.string().max(1000).optional()})),asyncHandler(async(req,res)=>{
+ const userId=currentUserId(req);const doc=await prisma.applicantDocument.findUnique({where:{id:req.params.id}});if(!doc||doc.deletedAt)throw AppError.notFound("Document not found");
+ const result=await prisma.$transaction(async tx=>{const updated=await tx.applicantDocument.update({where:{id:doc.id},data:{status:req.body.status}});await tx.documentVerification.create({data:{documentId:doc.id,reviewerId:userId,status:req.body.status,reason:req.body.reason}});return updated;});res.json({data:{id:result.id,status:result.status}});
+}));

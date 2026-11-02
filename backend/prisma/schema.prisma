@@ -137,6 +137,14 @@ enum ApplicationStatus {
   ARCHIVED
 }
 
+enum ApplicantDocumentStatus {
+  UPLOADED
+  PROCESSING
+  AWAITING_CONFIRMATION
+  VERIFIED
+  REJECTED
+}
+
 // ─────────────────────── Identity & access ───────────────────────
 
 model User {
@@ -543,6 +551,10 @@ model ApplicantDocument {
   id String @id @default(cuid())
   userId String
   kind String
+  groupId String
+  version Int @default(1)
+  status ApplicantDocumentStatus @default(UPLOADED)
+  expiresAt DateTime?
   fileName String
   mimeType String
   sizeBytes Int
@@ -555,7 +567,68 @@ model ApplicantDocument {
   deletedAt DateTime?
   createdAt DateTime @default(now())
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentVersions ApplicantDocumentVersion[]
+  extractions DocumentExtraction[]
+  verifications DocumentVerification[]
+  accesses DocumentAccessLog[]
+  applicationSnapshots ApplicationDocument[]
   @@index([userId, kind])
+  @@index([userId, groupId, version])
+}
+
+model ApplicantDocumentVersion {
+  id String @id @default(cuid())
+  documentId String
+  version Int
+  storageKey String @unique
+  sha256 String
+  fileName String
+  sizeBytes Int
+  mimeType String
+  createdAt DateTime @default(now())
+  document ApplicantDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@unique([documentId, version])
+}
+
+model DocumentExtraction {
+  id String @id @default(cuid())
+  documentId String
+  source String
+  extractedData Json
+  extractedAt DateTime @default(now())
+  confirmedAt DateTime?
+  document ApplicantDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@index([documentId, extractedAt])
+}
+
+model DocumentVerification {
+  id String @id @default(cuid())
+  documentId String
+  reviewerId String
+  status ApplicantDocumentStatus
+  reason String?
+  createdAt DateTime @default(now())
+  document ApplicantDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@index([documentId, createdAt])
+}
+
+model DocumentAccessLog {
+  id String @id @default(cuid())
+  documentId String
+  userId String
+  action String
+  createdAt DateTime @default(now())
+  document ApplicantDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@index([documentId, createdAt])
+}
+
+model DocumentRetentionPolicy {
+  id String @id @default(cuid())
+  country String
+  category String
+  retentionDays Int
+  active Boolean @default(true)
+  @@unique([country, category])
 }
 
 model OpportunityRequirement {
@@ -602,8 +675,11 @@ model ApplicationDocument {
   documentId String
   snapshotStorageKey String
   sha256 String
+  version Int @default(1)
+  opportunityRequirementsVersion Int?
   createdAt DateTime @default(now())
   application ApplicantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  document ApplicantDocument @relation(fields: [documentId], references: [id], onDelete: Restrict)
   @@unique([applicationId, documentId])
 }
 
