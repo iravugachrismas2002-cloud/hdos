@@ -12,6 +12,7 @@ import { INDICATORS } from "./data/indicators";
 import { INSTITUTIONS, LEGACY_REMOVED_PROGRAMS, OCCUPATIONS, OPPORTUNITIES, PROGRAMS, SECTORS, SKILLS } from "./data/catalog";
 import { PATHS, stepRows } from "./data/paths";
 import { SOURCES } from "./data/sources";
+import { OFFICIAL_DOCUMENT_REQUIREMENTS } from "./data/documentRequirements";
 
 const must = <T>(map: Map<string, T>, key: string, what: string): T => {
   const v = map.get(key);
@@ -173,6 +174,15 @@ async function seedCatalog(sourceIds: Map<string, string>, districtIds: Map<stri
       sourceId: must(sourceIds, o.source, "source"),
     };
     await prisma.opportunity.upsert({ where: { provider_title: { provider: o.provider, title: o.title } }, create: data, update: data });
+  }
+
+  for (const set of OFFICIAL_DOCUMENT_REQUIREMENTS) {
+    const opportunity = await prisma.opportunity.findUnique({ where: { provider_title: { provider: set.provider, title: set.title } } });
+    if (!opportunity) throw new Error(`Document requirement seed references missing opportunity: ${set.title}`);
+    for (const requirement of set.requirements) {
+      const rule = { kind: "document", description: requirement.description, mandatory: requirement.mandatory, minimumCount: requirement.minimumCount ?? 1, acceptedEvidence: requirement.acceptedEvidence, sourceUrl: set.sourceUrl, country: "RW" };
+      await prisma.opportunityRequirement.upsert({ where: { opportunityId_version_key: { opportunityId: opportunity.id, version: set.version, key: requirement.key } }, create: { opportunityId: opportunity.id, version: set.version, key: requirement.key, ...rule }, update: rule });
+    }
   }
 
   return { sectorIds, occupationIds };

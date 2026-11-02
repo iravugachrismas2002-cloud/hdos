@@ -6,6 +6,7 @@ import { INDICATORS } from "../seed/data/indicators";
 import { INSTITUTIONS, OCCUPATIONS, OPPORTUNITIES, PROGRAMS, SECTORS, SKILLS } from "../seed/data/catalog";
 import { CAREER_ROADMAPS, LEARNING_PATHS, PATHS, stepRows } from "../seed/data/paths";
 import { SOURCES } from "../seed/data/sources";
+import { OFFICIAL_DOCUMENT_REQUIREMENTS } from "../seed/data/documentRequirements";
 
 const dupes = (values: string[]) => values.filter((v, i) => values.indexOf(v) !== i);
 const sourceBySlug = new Map(SOURCES.map((s) => [s.slug, s]));
@@ -63,6 +64,27 @@ describe("seed: sources", () => {
     for (const slug of ["nisr-rphc5-2022", "nisr-lfs-2024-annual", "nisr-lfs-2024-q4", "hec-hli-register-2025", "rp-programmes-catalogue"]) {
       expect(sourceBySlug.get(slug)?.isDemo, slug).toBe(false);
     }
+  });
+});
+
+describe("seed: official opportunity document checklists", () => {
+  it("uses unique, source-backed requirement rows with valid minimum counts", () => {
+    expect(OFFICIAL_DOCUMENT_REQUIREMENTS.length).toBeGreaterThan(0);
+    for (const opportunity of OFFICIAL_DOCUMENT_REQUIREMENTS) {
+      expect(isHttps(opportunity.sourceUrl), opportunity.title).toBe(true);
+      expect(OPPORTUNITIES.some((row) => row.provider === opportunity.provider && row.title === opportunity.title), opportunity.title).toBe(true);
+      expect(dupes(opportunity.requirements.map((row) => row.key)), opportunity.title).toEqual([]);
+      for (const requirement of opportunity.requirements) {
+        expect(requirement.description.length, `${opportunity.title}: ${requirement.key}`).toBeGreaterThan(0);
+        expect(requirement.acceptedEvidence.length, `${opportunity.title}: ${requirement.key}`).toBeGreaterThan(0);
+        expect(requirement.minimumCount ?? 1, `${opportunity.title}: ${requirement.key}`).toBeGreaterThanOrEqual(1);
+      }
+    }
+  });
+
+  it("requires two distinct recommendation letters for Commonwealth applications", () => {
+    const commonwealth = OFFICIAL_DOCUMENT_REQUIREMENTS.find((row) => row.title === "Commonwealth Scholarships");
+    expect(commonwealth?.requirements.find((row) => row.key === "RECOMMENDATION_LETTER")?.minimumCount).toBe(2);
   });
 });
 

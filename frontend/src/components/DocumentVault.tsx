@@ -23,6 +23,10 @@ const CATEGORIES=[
  {id:"ACADEMIC_EQUIVALENCE",name:"Academic equivalence",description:"Authorized qualification recognition decision.",note:"Additional document"},
  {id:"LANGUAGE_CERTIFICATE",name:"Language certificate",description:"Official evidence of language proficiency.",note:"Additional document"},
  {id:"PROFESSIONAL_LICENCE",name:"Professional licence",description:"Current licence or professional registration.",note:"Additional document"},
+ {id:"STUDY_PLAN",name:"Study plan / research proposal",description:"Opportunity-specific plan or research proposal.",note:"Additional document"},
+ {id:"UNIVERSITY_EVIDENCE",name:"University admission evidence",description:"Offer letter or proof an admission application was submitted.",note:"Additional document"},
+ {id:"SUBMITTED_APPLICATION",name:"Submitted application copy",description:"Final external application and reference for an institution.",note:"Additional document"},
+ {id:"SUPERVISOR_STATEMENT",name:"Supervisor statement",description:"Required supporting statement from a proposed academic supervisor.",note:"Additional document"},
  {id:"OTHER",name:"Other supporting documents",description:"Other opportunity-specific evidence.",note:"Additional document"},
 ];
 type Doc={id:string;groupId:string;version:number;kind:string;fileName:string;mimeType:string;sizeBytes:number;status:string;expiresAt:string|null;createdAt:string;extractionConfirmedAt:string|null;extractedText?:{text?:string}|null;parentVersions?:{id:string;version:number;fileName:string;createdAt:string}[]};

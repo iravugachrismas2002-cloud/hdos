@@ -48,7 +48,12 @@ export const OPPORTUNITIES: OpportunitySeed[] = [
   bilateral("Algeria", "People's Democratic Republic of Algeria - Rwanda Government Scholarships"),
   bilateral("Morocco", "Kingdom of Morocco - Government of Rwanda Scholarships"),
   bilateral("Japan", "JICA - Rwanda Government Scholarships"),
-  bilateral("China", "China-Rwanda Government Scholarships"),
+  {
+    ...bilateral("China", "China-Rwanda Government Scholarships"),
+    description: "HEC announced the 2026–2027 Inner Mongolia Medical University call for Bachelor's Medicine scholarships. That call closed on 8 September 2026; check HEC for current calls.",
+    eligibility: "That published call required specified science combinations and score thresholds. See the linked official notice for the exact criteria and current HEC page for new cycles.",
+    url: "https://www.hec.gov.rw/fileadmin/user_upload/HEC/Scholarships/China-Rwanda_Scholarships_2026_2027_Inner_Mongolia_FR_Medical_UniversityS.pdf",
+  },
   {
     type: "SCHOLARSHIP", title: "EAC Scholarship Programme (Phase II)", provider: "Higher Education Council (HEC), Rwanda",
     description: "HEC announced a call for student applications to Phase II of the East African Community scholarship programme.",
@@ -57,9 +62,9 @@ export const OPPORTUNITIES: OpportunitySeed[] = [
   },
   {
     type: "SCHOLARSHIP", title: "Commonwealth Scholarships", provider: "Commonwealth Scholarship Commission (UK)",
-    description: "Master's and PhD scholarships for students from eligible Commonwealth countries. HEC announced the 2026 call on its scholarships page.",
-    eligibility: "Bachelor's degree minimum; see official criteria.", minEducation: "BACHELORS", country: "United Kingdom",
-    url: "https://cscuk.fcdo.gov.uk/", isRolling: false, verified: false, source: EDITORIAL,
+    description: "HEC's 2026 national nomination call for Commonwealth Master's and PhD awards for study beginning in 2027. The published deadline was 20 October 2026; check HEC and CSC for the next cycle.",
+    eligibility: "The 2026 notice specified different Master's and PhD conditions. Review the linked HEC announcement and CSC rules; HEC nomination did not guarantee an award.", minEducation: "BACHELORS", country: "United Kingdom",
+    url: "https://www.hec.gov.rw/fileadmin/user_upload/HEC/Scholarships/2026_COMMONWEALTH_SCHOLARSHIPS.pdf", isRolling: false, verified: true, source: HEC,
   },
 
   // ───────── International scholarships and fellowships ─────────

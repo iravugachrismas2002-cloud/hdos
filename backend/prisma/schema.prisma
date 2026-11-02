@@ -639,6 +639,7 @@ model OpportunityRequirement {
   description String
   kind String
   mandatory Boolean @default(true)
+  minimumCount Int @default(1)
   acceptedEvidence Json @default("[]")
   sourceUrl String?
   country String?
