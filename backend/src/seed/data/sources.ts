@@ -53,7 +53,7 @@ export const SOURCES: SourceSeed[] = [
     url: "https://reliefweb.int/jobs",
     license: null,
     publishedAt: null,
-    notes: "Humanitarian job listing service with country, career category, experience and closing-date fields. Filter for Rwanda and confirm the application details on the original posting.",
+    notes: "Humanitarian job listing service with a supported JSON API and country, career category, experience and closing-date fields. HDOS can fetch Rwanda listings when its ReliefWeb app name has been approved and configured; users must still confirm details on the original posting.",
     isDemo: false,
   },
   {

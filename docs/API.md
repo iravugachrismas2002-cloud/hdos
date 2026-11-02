@@ -77,6 +77,8 @@ type Profile = {
 
 All list endpoints accept `page` (default 1) and `pageSize` (default 20, max 50) and return `meta`.
 
+ReliefWeb live jobs require a provider-approved API app name. Request approval through ReliefWeb's API documentation and set the approved value in the backend-only `RELIEFWEB_APP_NAME` environment variable. Without it, the live-feed endpoint returns `NOT_CONFIGURED`; the source directory links remain available.
+
 - `GET /catalog/districts` → `{ id, name, province }[]`
 - `GET /catalog/sectors` → `{ id, code, name, nst2Priority }[]`
 - `GET /catalog/skills?q=&category=` → `{ id, name, category }[]` (max 100)
@@ -85,6 +87,7 @@ All list endpoints accept `page` (default 1) and `pageSize` (default 20, max 50)
 - `GET /catalog/occupations/:id` → `Occupation & { skills: { skillId, name, importance, requiredLevel }[] }`
 - `GET /catalog/programs?q=&level=&districtId=&institutionType=` → `Program[]`
 - `GET /catalog/opportunities?q=&type=&includeExpired=false` → `Opportunity[]`
+- `GET /catalog/live-opportunities?q=&page=&pageSize=` → live Rwanda jobs from ReliefWeb when `RELIEFWEB_APP_NAME` has the provider-approved app name; otherwise returns `NOT_CONFIGURED`. Results are briefly cached and link to original postings.
 
 ```ts
 type Occupation = {

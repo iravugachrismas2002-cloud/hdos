@@ -24,6 +24,17 @@ export interface OpportunitySource {
   id: string; slug: string; name: string; publisher: string; url: string | null; isDemo: boolean;
   category: "JOBS" | "SCHOLARSHIPS" | "LEARNING" | "BUSINESS"; description: string; focus: string[];
 }
+export interface LiveOpportunityFeed {
+  status: "CONNECTED" | "NOT_CONFIGURED";
+  message?: string;
+  sourceUrl: string;
+  items: {
+    externalId: string; title: string; url: string; organization: string; description: string | null;
+    country: string | null; city: string | null; createdAt: string | null; closingAt: string | null;
+    careerCategories: string[]; experience: string[];
+  }[];
+  page: number; pageSize: number; total: number; fetchedAt: string | null;
+}
 export interface User {
   id: string; email: string; name: string | null; role: Role; emailVerified: boolean; profileComplete: boolean;
 }

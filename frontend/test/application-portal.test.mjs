@@ -24,6 +24,9 @@ test("opportunity explorer links to verified job, scholarship, learning and busi
   const api = await readFile(new URL("../src/lib/api.ts", import.meta.url), "utf8");
   assert.match(page, /Opportunity sources/);
   assert.match(page, /Open provider site/);
-  assert.match(page, /not synchronized into HDOS automatically/);
+  assert.match(page, /Live humanitarian jobs in Rwanda/);
+  assert.match(page, /Track in HDOS/);
+  assert.match(page, /API approval is configured/);
   assert.match(api, /opportunity-sources/);
+  assert.match(api, /live-opportunities/);
 });

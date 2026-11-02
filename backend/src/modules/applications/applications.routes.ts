@@ -10,6 +10,7 @@ import { validate } from "../../middleware/validate";
 import { deleteDocument, getDocument, putDocument, scanWithClamAv, sha256 } from "./document-storage";
 import { env } from "../../config/env";
 import { randomUUID } from "node:crypto";
+import { getReliefWebJob, ReliefWebFeedError } from "../catalog/reliefweb.service";
 
 export const applicationsRouter = Router();
 applicationsRouter.use(authenticate);
@@ -90,6 +91,42 @@ applicationsRouter.post("/", validate(z.object({ opportunityId: z.string().min(1
   if (!opportunity) throw AppError.notFound("Opportunity not found");
   const row = await prisma.applicantApplication.upsert({ where: { userId_opportunityId: { userId: currentUserId(req), opportunityId: opportunity.id } }, create: { userId: currentUserId(req), opportunityId: opportunity.id, status: "DISCOVERED" }, update: {} });
   res.status(201).json({ data: row });
+}));
+applicationsRouter.post("/reliefweb/:externalId/track", asyncHandler(async (req, res) => {
+  if (!env.RELIEFWEB_APP_NAME) throw AppError.unavailable("Live ReliefWeb tracking is not configured until its app name has been approved and added to RELIEFWEB_APP_NAME.", "RELIEFWEB_APP_NAME_REQUIRED");
+  if (!/^\d{1,20}$/.test(req.params.externalId)) throw AppError.badRequest("Invalid ReliefWeb listing ID");
+  let job;
+  try { job = await getReliefWebJob(req.params.externalId, env.RELIEFWEB_APP_NAME); }
+  catch (error) {
+    if (error instanceof ReliefWebFeedError) throw AppError.unavailable(error.message, "RELIEFWEB_LOOKUP_FAILED");
+    throw AppError.unavailable("Could not confirm this listing with ReliefWeb.", "RELIEFWEB_LOOKUP_FAILED");
+  }
+  if (job.country?.toLowerCase() !== "rwanda") throw AppError.notFound("This listing is not tagged to Rwanda by ReliefWeb.");
+  if (job.closingAt && new Date(job.closingAt).getTime() < Date.now()) throw AppError.conflict("This ReliefWeb listing has closed. Refresh the live listings before tracking it.", "OPPORTUNITY_EXPIRED");
+  const source = await prisma.dataSource.findUnique({ where: { slug: "reliefweb-jobs" } });
+  if (!source) throw AppError.unavailable("ReliefWeb source record is not seeded yet.", "OPPORTUNITY_SOURCE_UNAVAILABLE");
+  const provider = `${job.organization} (ReliefWeb)`;
+  const opportunity = await prisma.opportunity.upsert({
+    where: { provider_title: { provider, title: job.title } },
+    create: {
+      type: "JOB", title: job.title, provider, description: job.description,
+      eligibility: null, minEducation: null, deadline: job.closingAt ? new Date(job.closingAt) : null,
+      isRolling: !job.closingAt, country: job.country ?? "Rwanda", url: job.url, sourceId: source.id,
+    },
+    update: {
+      description: job.description, deadline: job.closingAt ? new Date(job.closingAt) : null,
+      isRolling: !job.closingAt, country: job.country ?? "Rwanda", url: job.url,
+    },
+  });
+  const userId = currentUserId(req);
+  const existing = await prisma.applicantApplication.findUnique({ where: { userId_opportunityId: { userId, opportunityId: opportunity.id } } });
+  if (existing) { res.json({ data: { applicationId: existing.id, opportunityId: opportunity.id, status: existing.status, alreadyTracked: true } }); return; }
+  const application = await prisma.$transaction(async (tx) => {
+    const created = await tx.applicantApplication.create({ data: { userId, opportunityId: opportunity.id, status: "DISCOVERED" } });
+    await tx.applicationEvent.create({ data: { applicationId: created.id, status: "DISCOVERED", detail: `Tracked live ReliefWeb listing ${job.externalId}; verify details on the provider's page.` } });
+    return created;
+  });
+  res.status(201).json({ data: { applicationId: application.id, opportunityId: opportunity.id, status: application.status, alreadyTracked: false } });
 }));
 applicationsRouter.get("/:id/eligibility", asyncHandler(async (req, res) => {
   const userId = currentUserId(req);
