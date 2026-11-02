@@ -18,6 +18,7 @@ import { DEMAND_LABELS, EDUCATION_LABELS, EDUCATION_LEVELS, OPPORTUNITY_LABELS, 
 import { useDistricts, useSectors } from "@/lib/hooks";
 import type { DemandLevel, InstitutionType, OpportunityType } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useAppearance } from "@/contexts/AppearanceContext";
 
 const TABS = ["Occupations", "Programmes", "Opportunities", "Opportunity sources", "Learning paths & career roadmaps"] as const;
 type Tab = (typeof TABS)[number];
@@ -257,22 +258,23 @@ function OpportunitySources() {
 
 export default function ExplorePage() {
   const [tab, setTab] = useState<Tab>("Occupations");
+  const { t } = useAppearance();
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Explore</h1>
-        <p className="text-muted-foreground">Browse the reference data HDOS uses. Records marked &ldquo;Illustrative data&rdquo; are editorial placeholders, not official statistics.</p>
+        <h1 className="text-3xl font-bold">{t("Explore")}</h1>
+        <p className="text-muted-foreground">{t("Browse the reference data HDOS uses. Records marked illustrative data are editorial placeholders, not official statistics.")}</p>
       </div>
-      <div role="tablist" aria-label="Catalogue" className="flex flex-wrap gap-1 border-b">
-        {TABS.map((t) => (
+      <div role="tablist" aria-label={t("Catalogue")} className="flex flex-wrap gap-1 border-b">
+        {TABS.map((tabName) => (
           <button
-            key={t}
+            key={tabName}
             role="tab"
-            aria-selected={tab === t}
-            onClick={() => setTab(t)}
-            className={cn("-mb-px border-b-2 px-4 py-2 text-sm font-medium", tab === t ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground")}
+            aria-selected={tab === tabName}
+            onClick={() => setTab(tabName)}
+            className={cn("-mb-px border-b-2 px-4 py-2 text-sm font-medium", tab === tabName ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground")}
           >
-            {t}
+            {t(tabName)}
           </button>
         ))}
       </div>

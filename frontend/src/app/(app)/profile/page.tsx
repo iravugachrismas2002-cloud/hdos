@@ -20,6 +20,7 @@ import { EDUCATION_LABELS, EDUCATION_LEVELS, SKILL_LEVELS } from "@/lib/format";
 import { useDistricts, useSectors } from "@/lib/hooks";
 import type { EducationLevel, ProfileInput } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useAppearance } from "@/contexts/AppearanceContext";
 
 interface FormState {
   educationLevel: EducationLevel;
@@ -34,6 +35,7 @@ interface FormState {
 const EMPTY: FormState = { educationLevel: "UPPER_SECONDARY", districtId: "", birthYear: "", bio: "", income: "", skills: [], sectorIds: [] };
 
 export default function ProfilePage() {
+  const { t } = useAppearance();
   const queryClient = useQueryClient();
   const { refreshUser } = useAuth();
   const profile = useQuery({ queryKey: ["profile"], queryFn: profileApi.get });
@@ -97,8 +99,8 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">My profile (Life DNA)</h1>
-        <p className="text-muted-foreground">Everything here is editable and is the only personal data used to personalise your results.</p>
+        <h1 className="text-3xl font-bold">{t("My profile (Life DNA)")}</h1>
+        <p className="text-muted-foreground">{t("Everything here is editable and is the only personal data used to personalise your results.")}</p>
       </div>
       <div className="flex items-center gap-3">
         <Progress value={completeness} label="Profile completeness" className="max-w-xs" />
@@ -110,7 +112,7 @@ export default function ProfilePage() {
         <FormSuccess message={saved} />
 
         <Card>
-          <CardHeader><CardTitle>About you</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("About you")}</CardTitle></CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="edu">Highest education completed</Label>

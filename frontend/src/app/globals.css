@@ -60,3 +60,16 @@
   html.large-text { font-size: 112.5%; }
   html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* Legacy screens still use a few fixed Tailwind neutrals. Keep them legible
+   when the global theme is dark while token-based components use CSS vars. */
+.dark body { background: hsl(var(--background)); color: hsl(var(--foreground)); }
+.dark .bg-white, .dark .bg-white\/90 { background-color: hsl(var(--card)) !important; }
+.dark .bg-slate-50 { background-color: hsl(var(--muted)) !important; }
+.dark .text-slate-950, .dark .text-slate-900, .dark .text-slate-800 { color: hsl(var(--foreground)) !important; }
+.dark .text-slate-700, .dark .text-slate-600, .dark .text-slate-500 { color: hsl(var(--muted-foreground)) !important; }
+.dark .border-slate-200, .dark .border-slate-300, .dark .border-slate-100 { border-color: hsl(var(--border)) !important; }
+.dark .hover\:bg-slate-100:hover { background-color: hsl(var(--accent)) !important; }
+.dark .bg-blue-50 { background-color: rgb(30 58 138 / 0.25) !important; }
+.dark .text-blue-700, .dark .text-blue-800 { color: rgb(147 197 253) !important; }
+.dark input, .dark select, .dark textarea { color-scheme: dark; }

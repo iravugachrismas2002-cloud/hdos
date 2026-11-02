@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/select";
 import { insightsApi } from "@/lib/api";
 import { formatNumber } from "@/lib/format";
 import { useNationalIndicators } from "@/lib/hooks";
+import { useAppearance } from "@/contexts/AppearanceContext";
 
 const COLORS = ["#2563eb", "#f59e0b", "#16a34a"];
 
@@ -151,11 +152,12 @@ function Labour() {
 }
 
 export default function InsightsPage() {
+  const { t } = useAppearance();
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">National insights</h1>
-        <p className="text-muted-foreground">Official statistics, cited. This is the evidence base behind HDOS&apos;s national-priority signals.</p>
+        <h1 className="text-3xl font-bold">{t("National insights")}</h1>
+        <p className="text-muted-foreground">{t("Official statistics, cited. This is the evidence base behind HDOS's national-priority signals.")}</p>
       </div>
       <RwandaAtAGlance />
       <Labour />

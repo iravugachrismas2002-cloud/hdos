@@ -11,6 +11,7 @@ import { DocumentVault } from "@/components/DocumentVault";
 import { DocumentReadiness } from "@/components/DocumentReadiness";
 import { getErrorMessage } from "@/lib/api";
 import { useState } from "react";
+import { useAppearance } from "@/contexts/AppearanceContext";
 
 const nextAction: Record<string, { label: string; to: string }> = {
   DISCOVERED: { label: "Check documents", to: "ELIGIBLE" }, ELIGIBLE: { label: "Prepare application", to: "PREPARING" },
@@ -19,6 +20,7 @@ const nextAction: Record<string, { label: string; to: string }> = {
 };
 
 export default function ApplicationsPage() {
+  const { t } = useAppearance();
   const qc = useQueryClient();
   const apps = useQuery({ queryKey: ["applications"], queryFn: applicationsApi.list });
   const opportunities = useQuery({ queryKey: ["portal-opportunities"], queryFn: () => catalogApi.opportunities({ page: 1, pageSize: 8 }) });
@@ -26,7 +28,7 @@ export default function ApplicationsPage() {
   const act = async (id: string, status: string) => { const confirmSubmission=status==="SUBMITTED";if(confirmSubmission&&!window.confirm("Did you submit this application on the provider’s official application channel? Choose OK only after completing that external submission."))return;try{await applicationsApi.status(id, status, undefined, confirmSubmission);setActionError("");await qc.invalidateQueries({ queryKey: ["applications"] });}catch(error){setActionError(getErrorMessage(error,"Could not update this application. Check its official document requirements."))} };
   const start = async (id: string) => { await applicationsApi.create(id); await qc.invalidateQueries({ queryKey: ["applications"] }); };
   return <div className="space-y-7">
-    <header><p className="text-xs font-bold tracking-wider text-blue-700">HDOS APPLICATION PORTAL</p><h1 className="mt-2 text-3xl font-bold tracking-tight">Application centre</h1><p className="mt-2 text-sm text-slate-600">Track every opportunity, prepare documents, and confirm each submission yourself.</p></header>
+    <header><p className="text-xs font-bold tracking-wider text-blue-700">HDOS APPLICATION PORTAL</p><h1 className="mt-2 text-3xl font-bold tracking-tight">{t("Application centre")}</h1><p className="mt-2 text-sm text-slate-600">{t("Track every opportunity, prepare documents, and confirm each submission yourself.")}</p></header>
     <section className="grid gap-3 sm:grid-cols-3" aria-label="Application summary">{["PREPARING", "READY_FOR_REVIEW", "SUBMITTED"].map((s) => <Card key={s} className="rounded-2xl border-slate-200"><CardContent className="p-4"><p className="text-xs font-medium uppercase tracking-wide text-slate-500">{s.replaceAll("_", " ")}</p><p className="mt-2 text-2xl font-bold">{apps.data?.filter((a) => a.status === s).length ?? 0}</p></CardContent></Card>)}</section>
     <section className="space-y-3"><h2 className="text-xl font-bold">My applications</h2>{actionError&&<p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">{actionError}</p>}{apps.isLoading&&<p className="text-sm text-slate-500">Loading applications…</p>}{apps.isError&&<p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-800">Could not load applications. <button className="underline" onClick={()=>void apps.refetch()}>Retry</button></p>}{apps.data?.length ? apps.data.map((a) => <Card key={a.id} className="rounded-2xl border-slate-200"><CardContent className="space-y-3 p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-semibold">{a.opportunity.title}</h3><p className="mt-1 text-sm text-slate-500">{a.opportunity.provider} · Updated {formatDate(a.updatedAt)}{a.opportunity.deadline?` · Deadline ${formatDate(a.opportunity.deadline)}`:""}</p><Badge variant="secondary" className="mt-2">{a.status.replaceAll("_", " ")}</Badge>{a.receiptReference&&<p className="mt-2 text-xs text-emerald-800">Receipt: {a.receiptReference}</p>}</div>{nextAction[a.status] && <Button className="rounded-xl" onClick={() => act(a.id, nextAction[a.status].to)}>{nextAction[a.status].label}</Button>}</div><DocumentReadiness applicationId={a.id}/>{a.events?.length>0&&<ol aria-label="Application history" className="flex flex-wrap gap-x-4 gap-y-1 border-t pt-3">{a.events.map(ev=><li key={ev.id} className="text-xs text-slate-500"><b className="text-slate-700">{ev.status.replaceAll("_"," ")}</b> · {formatDate(ev.createdAt)}</li>)}</ol>}</CardContent></Card>) : !apps.isLoading&&<p className="rounded-2xl border border-dashed p-5 text-sm text-slate-500">No applications yet. Track an opportunity below to get started.</p>}</section>
     <DocumentVault />

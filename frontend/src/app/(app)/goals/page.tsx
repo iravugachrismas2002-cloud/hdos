@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { catalogApi, getErrorMessage, goalsApi } from "@/lib/api";
 import { CATEGORY_LABELS, formatDate } from "@/lib/format";
 import type { GoalCategory } from "@/lib/types";
+import { useAppearance } from "@/contexts/AppearanceContext";
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as GoalCategory[];
 
@@ -103,6 +104,7 @@ function NewGoalForm({ onDone }: { onDone: () => void }) {
 }
 
 export default function GoalsPage() {
+  const { t } = useAppearance();
   const queryClient = useQueryClient();
   const goals = useQuery({ queryKey: ["goals"], queryFn: goalsApi.list });
   const [creating, setCreating] = useState(false);
@@ -122,10 +124,10 @@ export default function GoalsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Goals</h1>
-          <p className="text-muted-foreground">Each goal gets its own recommendations and roadmap.</p>
+          <h1 className="text-3xl font-bold">{t("Goals")}</h1>
+          <p className="text-muted-foreground">{t("Each goal gets its own recommendations and roadmap.")}</p>
         </div>
-        {!creating && <Button onClick={() => setCreating(true)}>New goal</Button>}
+        {!creating && <Button onClick={() => setCreating(true)}>{t("New goal")}</Button>}
       </div>
 
       {creating && <NewGoalForm onDone={() => setCreating(false)} />}
@@ -134,7 +136,7 @@ export default function GoalsPage() {
       {goals.isLoading && <ListSkeleton />}
       {goals.isError && <ErrorState error={goals.error} onRetry={() => goals.refetch()} />}
       {goals.data?.length === 0 && !creating && (
-        <EmptyState title="No goals yet">Create a goal to see your best-fit pathways and a step-by-step roadmap.</EmptyState>
+        <EmptyState title={t("No goals yet")}>{t("Create a goal to see your best-fit pathways and a step-by-step roadmap.")}</EmptyState>
       )}
 
       <ul className="space-y-3">
