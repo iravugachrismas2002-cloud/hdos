@@ -2,7 +2,7 @@
 // Thin HTTP adapters for the three supported LLM providers. Secrets come only from environment variables.
 import { env } from "../../config/env";
 
-export type ProviderId = "gemini" | "groq" | "openrouter";
+export type ProviderId = "gemini" | "deepseek" | "groq" | "openrouter";
 
 export interface CompletionRequest {
   system: string;
@@ -131,6 +131,14 @@ const groq = openAiCompatible(
   () => env.GROQ_MODEL,
 );
 
+const deepseek = openAiCompatible(
+  "deepseek",
+  "DeepSeek",
+  "https://api.deepseek.com/chat/completions",
+  () => env.DEEPSEEK_API_KEY,
+  () => env.DEEPSEEK_MODEL,
+);
+
 const openrouter = openAiCompatible(
   "openrouter",
   "OpenRouter",
@@ -140,5 +148,5 @@ const openrouter = openAiCompatible(
   { "HTTP-Referer": env.FRONTEND_URL, "X-Title": "HDOS Rwanda" },
 );
 
-/** Failover order: Gemini -> Groq -> OpenRouter. */
-export const PROVIDERS: readonly Provider[] = [gemini, groq, openrouter];
+/** Failover order: Gemini -> DeepSeek -> Groq -> OpenRouter. */
+export const PROVIDERS: readonly Provider[] = [gemini, deepseek, groq, openrouter];

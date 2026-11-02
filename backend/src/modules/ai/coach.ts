@@ -20,6 +20,7 @@ export interface CoachSnapshot {
     target: { title: string; fitScore: number; band: string; confidence: string } | null;
     missingSkills: { name: string; currentLevel: number; requiredLevel: number }[];
     programs: { name: string; institution: string; level: string }[];
+    electricalProgramsAtMusanze: { name: string; level: string; url: string | null; source: string }[];
     opportunities: { title: string; provider: string; type: string; eligibleNow: boolean; url: string | null }[];
     roadmap: { progress: number; nextSteps: { title: string; phase: string; status: string }[] } | null;
   };
@@ -55,12 +56,26 @@ export const buildSnapshot = async (userId: string, goalId?: string | null): Pro
   let focus: CoachSnapshot["focus"] = null;
   if (focusGoal) {
     const [recs, roadmap] = await Promise.all([getRecommendations(userId, focusGoal.id), getRoadmap(userId, focusGoal.id)]);
+    const electricalProgramsAtMusanze = await prisma.program.findMany({
+      where: {
+        name: { contains: "Electrical Technology", mode: "insensitive" },
+        institution: { name: { contains: "IPRC Musanze", mode: "insensitive" } },
+      },
+      select: { name: true, level: true, url: true, source: { select: { name: true, url: true } } },
+      orderBy: { level: "asc" },
+    });
     const top = recs.occupations[0];
     focus = {
       goal: { id: focusGoal.id, title: focusGoal.title, category: focusGoal.category },
       target: top ? { title: top.occupation.title, fitScore: top.fitScore, band: top.band, confidence: top.confidence } : null,
       missingSkills: (top?.missingSkills ?? []).slice(0, 5).map((s) => ({ name: s.name, currentLevel: s.currentLevel, requiredLevel: s.requiredLevel })),
       programs: recs.programs.slice(0, 3).map((p) => ({ name: p.program.name, institution: p.program.institution.name, level: humanize(p.program.level) })),
+      electricalProgramsAtMusanze: electricalProgramsAtMusanze.map((p) => ({
+        name: p.name,
+        level: humanize(p.level),
+        url: p.url ?? p.source.url,
+        source: p.source.name,
+      })),
       opportunities: recs.opportunities.slice(0, 4).map((o) => ({
         title: o.opportunity.title,
         provider: o.opportunity.provider,
@@ -96,7 +111,12 @@ export const CHAT_SYSTEM_PROMPT = [
   "You are the HDOS Assistant, a friendly career and education guide for people in Rwanda (HDOS = Human Development Intelligence Operating System).",
   "You help with: choosing a career, studying in Rwanda or abroad, TVET and university options, scholarships, skills to learn, jobs, entrepreneurship, and following the user's HDOS roadmap.",
   "RULES:",
-  "- Be concise (under 180 words), practical and encouraging. Use short paragraphs or a short bullet list.",
+  "- Scale the answer to the request: answer a simple question briefly; for a multi-part request, provide enough detail to cover the goal, pathway, requirements, application actions and next steps (normally 100-350 words). Do not pad or repeat.",
+  "- First restate the user's actual goal and answer every part of the question. If they ask about studying at a named institution, do not substitute unrelated jobs, grants or programmes.",
+  "- For application questions, give a short ordered action plan: identify the exact programme/call, verify its current entry criteria and deadline with the official provider, prepare only the documents requested there, then use the official application channel. Explain what HDOS can track and what the user must submit themselves.",
+  "- Handle all pathway types: employment, internship, education, TVET, training, scholarship, grant, entrepreneurship and professional development. Determine the user's requested action from the whole sentence, not a single keyword. Do not show unrelated opportunity types.",
+  "- If matching data exists, connect the answer to the user's saved roadmap, skills gaps, profile and current application/document status. Separate a recommended pathway from an open vacancy or live intake; never imply that a user has applied unless the application record is actually submitted.",
+  "- If official entry requirements or a live application call are absent from HDOS DATA, say they are not available in the data and do not guess. Ask for the user's current qualification when it changes the next step.",
   "- Reply in the language the user writes in (English, Kinyarwanda or French).",
   "- Treat the HDOS DATA block as the only source for the user's profile, scores, programmes, opportunities and roadmap. Do not contradict it.",
   "- Never invent salaries, deadlines, admission requirements, statistics, or institution facts. If you are not sure, say so and tell the user to verify with the institution, employer, HEC, RTB, MIFOTRA, NISR or BDF.",
@@ -117,6 +137,25 @@ export const fallbackReply = (message: string, snap: CoachSnapshot): string => {
 
   if (/\b(hi|hello|hey|muraho|bonjour|salut)\b/.test(m) && m.length < 30) {
     return `Hello${snap.profile.name ? ` ${snap.profile.name}` : ""}! I can help with your career goals, skills to learn, programmes, scholarships and your roadmap. What would you like to know?`;
+  }
+
+  // Handle a compound study + apply question before broad opportunity matching. Without this,
+  // a single word like "apply" incorrectly routes users to unrelated jobs and grants.
+  if (/(learn|study|course|programme|program|admission|entry requirement|qualification|degree|diploma)/.test(m)
+    && /(apply|application|requirement|admission|how can i|help me)/.test(m)
+    && /(iprc|college|university|school|musanze|electrical|engineering)/.test(m)) {
+    const options = f?.electricalProgramsAtMusanze ?? [];
+    if (options.length) {
+      lines.push("I understand: you want to study an electrical programme at IPRC Musanze and need the entry requirements and application steps.");
+      lines.push(`The HDOS catalogue lists: ${list(options.map((p) => `${p.name} (${p.level})`))}`);
+      lines.push("RP's published general application criteria currently say: Senior 6 completion or a Level 5 TVET completion certificate; at least two relevant principal passes; and a National ID (Rwandan applicants) or valid passport (international applicants), plus an accessible email. Advanced Diploma holders applying for BTech use their certificates and transcripts. These are general criteria; confirm programme-specific subject requirements and the current intake deadline in the live notice.");
+      lines.push("Action plan: 1) compare your qualification and relevant subjects with the notice; 2) prepare the listed certificate/transcript and ID; 3) apply yourself through RP's online application portal; 4) keep the receipt and follow the registration instructions. HDOS can help track documents and an opportunity once it is in your Applications list, but it cannot submit to RP without an authorised integration.");
+      lines.push("Official programme list: https://new.rp.ac.rw/musanze-programs/  |  Application requirements and portal: https://new.rp.ac.rw/online-application/");
+    } else {
+      lines.push("I understand you want to study at the institution you named and need help applying. I could not find a matching programme record in the current HDOS catalogue, so I won't invent one.");
+      lines.push("Please share the exact programme name and your highest completed qualification. Check the institution's current official admissions notice for entry criteria, documents and deadline before applying.");
+    }
+    return lines.join("\n\n");
   }
 
   if (/roadmap|plan|next step|step|progress/.test(m)) {

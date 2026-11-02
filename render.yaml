@@ -58,6 +58,8 @@ services:
       # Optional: enables AI explanations (falls back to rule-based text without it)
       - key: GEMINI_API_KEY
         sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
 
   - type: web
     name: hdos-web

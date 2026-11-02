@@ -34,9 +34,11 @@ const schema = z.object({
   SMTP_PASS: z.string().default(""),
   SMTP_FROM: z.string().default("noreply@hdos.rw"),
 
-  // AI providers, tried in this order: Gemini -> Groq -> OpenRouter -> built-in deterministic fallback.
+  // AI providers, tried in order: Gemini -> DeepSeek -> Groq -> OpenRouter -> deterministic fallback.
   GEMINI_API_KEY: z.string().default(""),
   GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
+  DEEPSEEK_API_KEY: z.string().default(""),
+  DEEPSEEK_MODEL: z.string().default("deepseek-chat"),
   GROQ_API_KEY: z.string().default(""),
   GROQ_MODEL: z.string().default("llama-3.3-70b-versatile"),
   OPENROUTER_API_KEY: z.string().default(""),

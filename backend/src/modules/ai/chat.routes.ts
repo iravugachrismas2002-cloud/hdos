@@ -74,9 +74,11 @@ chatRouter.post(
       system: CHAT_SYSTEM_PROMPT,
       prompt: `${snapshot ? snapshotPrompt(snapshot) : "HDOS DATA: unavailable"}\n\nUSER MESSAGE:\n${message}`,
       history,
-      temperature: 0.4,
-      maxTokens: 500,
-      maxChars: 2000,
+      temperature: 0.35,
+      // Match answer depth to the question: short factual asks stay short; multi-part planning
+      // and application questions get enough room for steps, documents and caveats.
+      maxTokens: message.trim().split(/\s+/).length > 28 || /roadmap|plan|apply|application|requirements|compare|step.by.step/i.test(message) ? 900 : 420,
+      maxChars: 4200,
       fallback: snapshot
         ? fallbackReply(message, snapshot)
         : "I could not load your HDOS data just now. Please try again in a moment, or browse careers and programmes on the Explore page.",
