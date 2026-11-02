@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { ExternalLink } from "lucide-react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Pagination } from "@/components/Pagination";
 import { PathsExplorer } from "@/components/PathsExplorer";
@@ -18,7 +19,7 @@ import { useDistricts, useSectors } from "@/lib/hooks";
 import type { DemandLevel, InstitutionType, OpportunityType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const TABS = ["Occupations", "Programmes", "Opportunities", "Learning paths & career roadmaps"] as const;
+const TABS = ["Occupations", "Programmes", "Opportunities", "Opportunity sources", "Learning paths & career roadmaps"] as const;
 type Tab = (typeof TABS)[number];
 
 function Filters({ children }: { children: React.ReactNode }) {
@@ -209,6 +210,52 @@ function Opportunities() {
   );
 }
 
+function OpportunitySources() {
+  const [category, setCategory] = useState("");
+  const res = useQuery({ queryKey: ["opportunity-sources"], queryFn: catalogApi.opportunitySources });
+  const sources = (res.data ?? []).filter((source) => !category || source.category === category);
+  const categories = [
+    ["", "All sources"], ["JOBS", "Jobs & humanitarian"], ["SCHOLARSHIPS", "Scholarships"],
+    ["LEARNING", "Learning & skills"], ["BUSINESS", "Business support"],
+  ];
+  return (
+    <div className="space-y-4">
+      <div className="max-w-3xl rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950">
+        <h2 className="font-semibold">Opportunity boards and official services</h2>
+        <p className="mt-1">Open a provider to browse its listings or services. External listings are not synchronized into HDOS automatically; confirm eligibility, deadlines and application instructions on the provider&apos;s page.</p>
+      </div>
+      <Field id="source-category" label="Filter by category">
+        <Select id="source-category" value={category} onChange={(event) => setCategory(event.target.value)}>
+          {categories.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
+        </Select>
+      </Field>
+      {res.isLoading && <ListSkeleton />}
+      {res.isError && <ErrorState error={res.error} onRetry={() => res.refetch()} />}
+      {sources.length === 0 && !res.isLoading && !res.isError && <EmptyState title="No opportunity sources are available" />}
+      <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {sources.map((source) => (
+          <li key={source.id}>
+            <Card className="h-full">
+              <CardContent className="flex h-full flex-col items-start gap-3 p-4">
+                <div>
+                  <Badge variant="secondary">{source.category === "JOBS" ? "Jobs & humanitarian" : source.category === "SCHOLARSHIPS" ? "Scholarships" : source.category === "LEARNING" ? "Learning & skills" : "Business support"}</Badge>
+                  <h3 className="mt-2 font-semibold">{source.name}</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">{source.publisher}</p>
+                </div>
+                <p className="text-sm text-muted-foreground">{source.description}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {source.focus.map((tag) => <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-[11px] text-slate-700">{tag}</span>)}
+                </div>
+                {source.url && <a className="mt-auto inline-flex items-center gap-1.5 pt-2 text-sm font-semibold text-primary underline" href={source.url} target="_blank" rel="noopener noreferrer">Open provider site <ExternalLink size={14} aria-hidden="true" /></a>}
+              </CardContent>
+            </Card>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function ExplorePage() {
   const [tab, setTab] = useState<Tab>("Occupations");
   return (
@@ -234,6 +281,7 @@ export default function ExplorePage() {
         {tab === "Occupations" && <Occupations />}
         {tab === "Programmes" && <Programmes />}
         {tab === "Opportunities" && <Opportunities />}
+        {tab === "Opportunity sources" && <OpportunitySources />}
         {tab === "Learning paths & career roadmaps" && <PathsExplorer />}
       </div>
     </div>

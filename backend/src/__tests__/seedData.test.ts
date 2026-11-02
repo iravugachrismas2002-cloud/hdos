@@ -7,6 +7,7 @@ import { INSTITUTIONS, OCCUPATIONS, OPPORTUNITIES, PROGRAMS, SECTORS, SKILLS } f
 import { CAREER_ROADMAPS, LEARNING_PATHS, PATHS, stepRows } from "../seed/data/paths";
 import { SOURCES } from "../seed/data/sources";
 import { OFFICIAL_DOCUMENT_REQUIREMENTS } from "../seed/data/documentRequirements";
+import { OPPORTUNITY_SOURCE_DIRECTORY } from "../seed/data/opportunitySourceDirectory";
 
 const dupes = (values: string[]) => values.filter((v, i) => values.indexOf(v) !== i);
 const sourceBySlug = new Map(SOURCES.map((s) => [s.slug, s]));
@@ -85,6 +86,24 @@ describe("seed: official opportunity document checklists", () => {
   it("requires two distinct recommendation letters for Commonwealth applications", () => {
     const commonwealth = OFFICIAL_DOCUMENT_REQUIREMENTS.find((row) => row.title === "Commonwealth Scholarships");
     expect(commonwealth?.requirements.find((row) => row.key === "RECOMMENDATION_LETTER")?.minimumCount).toBe(2);
+  });
+});
+
+describe("seed: opportunity source directory", () => {
+  it("references known, linked, non-illustrative source records", () => {
+    expect(OPPORTUNITY_SOURCE_DIRECTORY.length).toBeGreaterThanOrEqual(8);
+    expect(dupes(OPPORTUNITY_SOURCE_DIRECTORY.map((entry) => entry.sourceSlug))).toEqual([]);
+    for (const slug of ["opportunity-in-rwanda", "unjobs-rwanda", "job-in-rwanda", "reliefweb-jobs", "ingazi-skills", "rdb-registrar-general"]) {
+      expect(OPPORTUNITY_SOURCE_DIRECTORY.some((entry) => entry.sourceSlug === slug), slug).toBe(true);
+    }
+    for (const entry of OPPORTUNITY_SOURCE_DIRECTORY) {
+      const source = sourceBySlug.get(entry.sourceSlug);
+      expect(source, entry.sourceSlug).toBeDefined();
+      expect(isHttps(source?.url), entry.sourceSlug).toBe(true);
+      expect(source?.isDemo, entry.sourceSlug).toBe(false);
+      expect(entry.description.length, entry.sourceSlug).toBeGreaterThan(20);
+      expect(entry.focus.length, entry.sourceSlug).toBeGreaterThan(0);
+    }
   });
 });
 

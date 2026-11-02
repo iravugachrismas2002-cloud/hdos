@@ -1,7 +1,6 @@
 // Copyright (c) 2026 HDOS Rwanda. All rights reserved.
 // Every seeded record points at one of these DataSource rows. `isDemo: true` means "illustrative / not verified
-// against an official page". "Verified" below means: read on the cited official page during seed authoring
-// (2026-10-30). See docs/DATA_SOURCES.md for what remains to be verified.
+// against an official page". Each source note and docs/DATA_SOURCES.md define what was checked and when.
 
 export interface SourceSeed {
   slug: string;
@@ -17,6 +16,86 @@ export interface SourceSeed {
 const NISR_LICENSE = "CC BY 4.0 (per NISR site notice)";
 
 export const SOURCES: SourceSeed[] = [
+  {
+    slug: "opportunity-in-rwanda",
+    name: "Opportunity in Rwanda — job search",
+    publisher: "Opportunity in Rwanda",
+    url: "https://opportunity.ini.rw/",
+    license: null,
+    publishedAt: null,
+    notes: "External job-search platform for Rwanda and beyond, with job search and applicant tools. HDOS links users to the provider; listing freshness and application requirements must be checked on the provider's site.",
+    isDemo: false,
+  },
+  {
+    slug: "unjobs-rwanda",
+    name: "UNjobs — Rwanda duty station vacancies",
+    publisher: "UNjobs",
+    url: "https://unjobs.org/duty_stations/rwanda/",
+    license: null,
+    publishedAt: null,
+    notes: "Third-party aggregator page for vacancies tagged to Rwanda, including UN and development organizations. Confirm each vacancy and application route with the named employer before applying.",
+    isDemo: false,
+  },
+  {
+    slug: "job-in-rwanda",
+    name: "Job in Rwanda — job and tender listings",
+    publisher: "Job in Rwanda",
+    url: "https://www.jobinrwanda.com/jobs/search-result",
+    license: null,
+    publishedAt: null,
+    notes: "Rwanda job board with vacancies and other postings. HDOS does not republish or verify individual listings here; review the source posting and employer before applying.",
+    isDemo: false,
+  },
+  {
+    slug: "reliefweb-jobs",
+    name: "ReliefWeb — humanitarian jobs",
+    publisher: "ReliefWeb / United Nations OCHA",
+    url: "https://reliefweb.int/jobs",
+    license: null,
+    publishedAt: null,
+    notes: "Humanitarian job listing service with country, career category, experience and closing-date fields. Filter for Rwanda and confirm the application details on the original posting.",
+    isDemo: false,
+  },
+  {
+    slug: "ingazi-skills",
+    name: "Ingazi — courses and career skills",
+    publisher: "Ingazi Rwanda",
+    url: "https://www.ingazi.rw/",
+    license: null,
+    publishedAt: null,
+    notes: "Rwanda youth learning and career platform describing free courses, certificates, job-readiness and links to career opportunities. Course availability and terms are set by Ingazi.",
+    isDemo: false,
+  },
+  {
+    slug: "rdb-registrar-general",
+    name: "RDB Office of the Registrar General — business registration",
+    publisher: "Rwanda Development Board (RDB), Office of the Registrar General",
+    url: "https://org.rdb.rw/",
+    license: null,
+    publishedAt: null,
+    notes: "Official Registrar General service for business registration and related registry services. This is a business formalization resource, not a grants or jobs listing.",
+    isDemo: false,
+  },
+  {
+    slug: "un-rwanda-jobs",
+    name: "United Nations in Rwanda — jobs",
+    publisher: "United Nations in Rwanda",
+    url: "https://rwanda.un.org/en/jobs",
+    license: null,
+    publishedAt: null,
+    notes: "Official UN in Rwanda jobs page with vacancies from UN entities. Each role has its own eligibility, deadlines and application route; check the vacancy notice.",
+    isDemo: false,
+  },
+  {
+    slug: "mifotra-recruitment-portal",
+    name: "Rwanda Civil Service Recruitment Portal",
+    publisher: "Ministry of Public Service and Labour (MIFOTRA)",
+    url: "https://www.recruitment.mifotra.gov.rw/us/",
+    license: null,
+    publishedAt: null,
+    notes: "Government recruitment portal for public-service vacancies and application guidance. Follow the requirements shown on each live vacancy.",
+    isDemo: false,
+  },
   // ───────────── NISR (statistics) ─────────────
   {
     slug: "nisr-rphc5-2022",

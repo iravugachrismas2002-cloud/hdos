@@ -2,8 +2,8 @@
 
 Every seeded record points to a `DataSource` row (`backend/src/seed/data/sources.ts`). `isDemo = true` means the
 record is **illustrative / not verified** against an official page. "Verified" below means: read on the cited
-official page while the seed was authored (**2026-10-30**). Nothing here has been signed off by the institutions or
-ministries themselves.
+official page while the seed was authored (**2026-10-30**, except rows with later check dates below). Nothing here
+has been signed off by the institutions or ministries themselves.
 
 Ground rules applied to all data:
 
@@ -24,6 +24,11 @@ Ground rules applied to all data:
 | `hec-hli-register-2025` | Higher Education Council | https://www.hec.gov.rw/accredited-institutions | Existence of 21 institutions in HEC's 2025 "Heads of Higher Learning Institutions" list | **Verified official** (existence); districts/websites are editor-added | Accreditation status per programme; districts for institutions left NULL; HEC list pages beyond the first 19 entries were only partly read |
 | `rp-programmes-catalogue` | Rwanda Polytechnic | https://new.rp.ac.rw/programmes/ | 8 RP colleges; 36 Advanced Diploma and 22 Bachelor of Technology programmes with offering colleges (120 programme records) | **Verified official** (names, levels, colleges) | Durations (only Advanced Diploma = 36 months, inferred from RP's LMS Y1-Y3), entry requirements, intakes, short courses. Page lists a "Diploma" tab identical to Advanced Diploma; treated as duplicate. Domain `new.rp.ac.rw` may move to `rp.ac.rw` |
 | `hec-scholarships-2026` | HEC | https://www.hec.gov.rw/updates/scholarships | Government Study Loan (Jan 2027 intake), bilateral scholarships (Algeria, Morocco, JICA, China), EAC Phase II | **Verified official** (that each call was announced) | Full eligibility/levels for the bilateral calls (only titles read); next-cycle dates. Loan call closed 21 Oct 2026 |
+| `opportunity-in-rwanda`, `unjobs-rwanda`, `job-in-rwanda`, `reliefweb-jobs` | External vacancy directories | See linked pages in `sources.ts` | Job, NGO, UN and humanitarian listing discovery | **Directory pages checked 2026-11-02**; not individual opportunity verification | Confirm each listing, deadline and application channel with the original employer |
+| `un-rwanda-jobs` | United Nations in Rwanda | https://rwanda.un.org/en/jobs | Official UN entity vacancy page for Rwanda | **Verified official page** | Individual vacancy requirements and dates change |
+| `mifotra-recruitment-portal` | MIFOTRA | https://www.recruitment.mifotra.gov.rw/us/ | Rwanda civil-service vacancies and application instructions | **Verified government portal** | Active vacancies and requirements change |
+| `ingazi-skills` | Ingazi Rwanda | https://www.ingazi.rw/ | Learning, skills and career resources for young people | **Verified provider page** | Current courses, access and certificate terms are controlled by Ingazi |
+| `rdb-registrar-general` | RDB Office of the Registrar General | https://org.rdb.rw/ | Official business registration and registry services | **Verified official service page** | Registration requirements change; this is not a job or grant listing |
 | `mifotra-nep` | MIFOTRA (NEP) | https://jobportal.kora.rw/article/nepinterventions | NEP interventions (rapid response, short-term vocational, apprenticeship, reconversion, RPL, internship, business advisory voucher) | **Verified official**, but the page text is labelled **2018** | Which components are active today; current NEP page on mifotra.gov.rw |
 | `bdf-services` | Business Development Fund | https://bdf.rw/ | BDF mandate (est. 2011) and service list | **Verified official** (site text via search snippet; direct fetch failed from the authoring tool) | Current guarantee terms (not stored), eligibility per product |
 | `risa-dap` | RISA / MINICT | https://www.risa.gov.rw/projects/digital-ambassadors-program | Digital Ambassadors Programme (apprenticeship for young graduates) | **Verified official** | Current recruitment call, stipend/terms (not stored) |

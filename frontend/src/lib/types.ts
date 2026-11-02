@@ -20,6 +20,10 @@ export interface Meta { page: number; pageSize: number; total: number }
 export interface SourceRef {
   id: string; name: string; publisher: string; url: string | null; publishedAt: string | null; isDemo: boolean;
 }
+export interface OpportunitySource {
+  id: string; slug: string; name: string; publisher: string; url: string | null; isDemo: boolean;
+  category: "JOBS" | "SCHOLARSHIPS" | "LEARNING" | "BUSINESS"; description: string; focus: string[];
+}
 export interface User {
   id: string; email: string; name: string | null; role: Role; emailVerified: boolean; profileComplete: boolean;
 }

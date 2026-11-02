@@ -115,6 +115,7 @@ export const catalogApi = {
   occupations: (params: Record<string, unknown>) => list<T.Occupation>("/catalog/occupations", params),
   programs: (params: Record<string, unknown>) => list<T.Program>("/catalog/programs", params),
   opportunities: (params: Record<string, unknown>) => list<T.Opportunity>("/catalog/opportunities", params),
+  opportunitySources: () => get<T.OpportunitySource[]>("/catalog/opportunity-sources"),
   paths: (params: Record<string, unknown>) => list<T.PathSummary>("/catalog/paths", params),
   path: (slug: string) => get<T.PathDetail>(`/catalog/paths/${encodeURIComponent(slug)}`),
 };

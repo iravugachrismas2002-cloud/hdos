@@ -15,6 +15,7 @@ import {
   toSourceRef,
 } from "../../lib/mappers";
 import { validate } from "../../middleware/validate";
+import { OPPORTUNITY_SOURCE_DIRECTORY } from "../../seed/data/opportunitySourceDirectory";
 
 export const catalogRouter = Router();
 
@@ -218,6 +219,32 @@ const opportunityQuery = paginationSchema.extend({
   type: z.enum(["SCHOLARSHIP", "INTERNSHIP", "JOB", "TRAINING", "FELLOWSHIP", "GRANT"]).optional(),
   includeExpired: z.enum(["true", "false"]).default("false"),
 });
+
+catalogRouter.get(
+  "/opportunity-sources",
+  asyncHandler(async (_req, res) => {
+    const definitions = OPPORTUNITY_SOURCE_DIRECTORY;
+    const records = await prisma.dataSource.findMany({
+      where: { slug: { in: definitions.map((entry) => entry.sourceSlug) } },
+    });
+    const bySlug = new Map(records.map((record) => [record.slug, record]));
+    const data = definitions.flatMap((entry) => {
+      const source = bySlug.get(entry.sourceSlug);
+      return source ? [{
+        id: source.id,
+        slug: source.slug,
+        name: source.name,
+        publisher: source.publisher,
+        url: source.url,
+        isDemo: source.isDemo,
+        category: entry.category,
+        description: entry.description,
+        focus: entry.focus,
+      }] : [];
+    });
+    res.json({ data });
+  }),
+);
 
 catalogRouter.get(
   "/opportunities",

@@ -80,6 +80,7 @@ All list endpoints accept `page` (default 1) and `pageSize` (default 20, max 50)
 - `GET /catalog/districts` → `{ id, name, province }[]`
 - `GET /catalog/sectors` → `{ id, code, name, nst2Priority }[]`
 - `GET /catalog/skills?q=&category=` → `{ id, name, category }[]` (max 100)
+- `GET /catalog/opportunity-sources` → curated external job, scholarship, skills and business-service links joined to their `DataSource` provenance records. The response describes directories, not synchronized vacancy data.
 - `GET /catalog/occupations?q=&sectorId=&demand=` → `Occupation[]`
 - `GET /catalog/occupations/:id` → `Occupation & { skills: { skillId, name, importance, requiredLevel }[] }`
 - `GET /catalog/programs?q=&level=&districtId=&institutionType=` → `Program[]`
