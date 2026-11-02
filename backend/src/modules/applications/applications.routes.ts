@@ -48,8 +48,10 @@ applicationsRouter.post("/documents", express.raw({ type: ["application/pdf", "t
 }));
 applicationsRouter.get("/documents/:id/download", asyncHandler(async (req, res) => {
   if (!env.DOCUMENT_ENCRYPTION_CONFIGURED) throw AppError.unavailable("Document downloads are temporarily disabled until encryption is configured", "DOCUMENT_STORAGE_DISABLED");
-  const row = await prisma.applicantDocument.findFirst({ where: { id: req.params.id, userId: currentUserId(req), deletedAt: null } });
+  const userId = currentUserId(req);
+  const row = await prisma.applicantDocument.findFirst({ where: { id: req.params.id, deletedAt: null } });
   if (!row) throw AppError.notFound("Document not found");
+  if (row.userId !== userId) throw AppError.forbidden("You do not have permission to download this document");
   const file = await getDocument(row.userId, row.id);
   await prisma.documentAccessLog.create({ data: { documentId: row.id, userId: row.userId, action: "DOWNLOAD" } });
   res.setHeader("Content-Type", row.mimeType); res.setHeader("Content-Disposition", `attachment; filename="${row.fileName.replace(/"/g, "")}"`); res.setHeader("Cache-Control", "private, no-store"); res.send(file);
