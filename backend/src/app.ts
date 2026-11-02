@@ -15,6 +15,8 @@ import { catalogRouter } from "./modules/catalog/catalog.routes";
 import { goalsRouter } from "./modules/goals/goals.routes";
 import { insightsRouter } from "./modules/insights/insights.routes";
 import { profileRouter } from "./modules/profile/profile.routes";
+import { applicationsRouter } from "./modules/applications/applications.routes";
+import { portalAdminRouter } from "./modules/applications/admin.routes";
 
 /** Builds the Express app without listening, so tests can drive it with supertest. */
 export const createApp = (): Application => {
@@ -50,6 +52,8 @@ export const createApp = (): Application => {
   app.use("/api/auth", authRouter);
   app.use("/api/account", accountRouter);
   app.use("/api/profile", profileRouter);
+  app.use("/api/applications", applicationsRouter);
+  app.use("/api/portal-admin", portalAdminRouter);
   app.use("/api/catalog", catalogRouter);
   app.use("/api/insights", insightsRouter);
   app.use("/api/goals", goalsRouter);

@@ -22,6 +22,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/goals", label: "Goals" },
     { href: "/assistant", label: "Ask HDOS AI", icon: MessageSquare },
     { href: "/explore", label: "Explore" },
+    { href: "/applications", label: "Applications" },
     { href: "/insights", label: "Insights" },
     { href: "/profile", label: "My profile" },
     ...(user && (user.role === "ADMINISTRATOR" || user.role === "GOVERNMENT_ANALYST") ? [{ href: "/admin", label: "Analytics" }] : []),

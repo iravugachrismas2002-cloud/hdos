@@ -119,6 +119,24 @@ enum ChatRole {
   ASSISTANT
 }
 
+enum ApplicationStatus {
+  DISCOVERED
+  ELIGIBLE
+  INELIGIBLE
+  DOCUMENTS_REQUIRED
+  PREPARING
+  READY_FOR_REVIEW
+  APPROVED
+  SUBMITTED
+  UNDER_REVIEW
+  INTERVIEW
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+  EXPIRED
+  ARCHIVED
+}
+
 // ─────────────────────── Identity & access ───────────────────────
 
 model User {
@@ -136,6 +154,9 @@ model User {
   refreshTokens RefreshToken[]
   oneTimeTokens OneTimeToken[]
   chatMessages  ChatMessage[]
+  applications ApplicantApplication[]
+  applicantDetails ApplicantProfile?
+  applicantDocuments ApplicantDocument[]
 
   @@index([role])
 }
@@ -402,6 +423,8 @@ model Opportunity {
   sourceId       String
 
   source DataSource @relation(fields: [sourceId], references: [id])
+  applications ApplicantApplication[]
+  requirements OpportunityRequirement[]
 
   @@unique([provider, title])
   @@index([type])
@@ -477,6 +500,134 @@ model ChatMessage {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+/// Applicant-owned tracking record. Submission is always recorded explicitly; no unattended submissions.
+model ApplicantApplication {
+  id String @id @default(cuid())
+  userId String
+  opportunityId String
+  status ApplicationStatus @default(DISCOVERED)
+  notes String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  receiptReference String?
+  submittedAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  answers ApplicationAnswer[]
+  events ApplicationEvent[]
+  documents ApplicationDocument[]
+  @@unique([userId, opportunityId])
+  @@index([userId, status])
+}
+
+model ApplicantProfile {
+  id String @id @default(cuid())
+  userId String @unique
+  phone String?
+  country String @default("RW")
+  location String?
+  education Json @default("[]")
+  experience Json @default("[]")
+  skills Json @default("[]")
+  languages Json @default("[]")
+  preferences Json @default("{}")
+  confirmedAt DateTime?
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// File bytes live in private object storage; this table contains metadata only.
+model ApplicantDocument {
+  id String @id @default(cuid())
+  userId String
+  kind String
+  fileName String
+  mimeType String
+  sizeBytes Int
+  sha256 String
+  storageKey String @unique
+  extractedText Json?
+  extractionConfirmedAt DateTime?
+  retentionUntil DateTime?
+  archivedAt DateTime?
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, kind])
+}
+
+model OpportunityRequirement {
+  id String @id @default(cuid())
+  opportunityId String
+  version Int @default(1)
+  key String
+  description String
+  kind String
+  mandatory Boolean @default(true)
+  acceptedEvidence Json @default("[]")
+  sourceUrl String?
+  country String?
+  effectiveFrom DateTime?
+  effectiveUntil DateTime?
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  @@unique([opportunityId, version, key])
+  @@index([opportunityId, mandatory])
+}
+
+model ApplicationAnswer {
+  id String @id @default(cuid())
+  applicationId String
+  questionKey String
+  answer String
+  confirmedAt DateTime?
+  application ApplicantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@unique([applicationId, questionKey])
+}
+
+model ApplicationEvent {
+  id String @id @default(cuid())
+  applicationId String
+  status ApplicationStatus
+  detail String?
+  createdAt DateTime @default(now())
+  application ApplicantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@index([applicationId, createdAt])
+}
+
+model ApplicationDocument {
+  id String @id @default(cuid())
+  applicationId String
+  documentId String
+  snapshotStorageKey String
+  sha256 String
+  createdAt DateTime @default(now())
+  application ApplicantApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  @@unique([applicationId, documentId])
+}
+
+model CountryConfiguration {
+  code String @id
+  name String
+  languages Json @default("[]")
+  privacyNoticeUrl String?
+  storageRegion String?
+  requirements Json @default("{}")
+  updatedAt DateTime @updatedAt
+}
+
+model InstitutionConnector {
+  id String @id @default(cuid())
+  name String
+  country String
+  kind String
+  endpoint String
+  enabled Boolean @default(false)
+  authorizationReference String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([country, enabled])
 }
 
 // ───────────────────────── Users' development data ─────────────────────────

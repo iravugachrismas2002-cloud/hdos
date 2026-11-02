@@ -119,6 +119,18 @@ export const catalogApi = {
   path: (slug: string) => get<T.PathDetail>(`/catalog/paths/${encodeURIComponent(slug)}`),
 };
 
+export const applicationsApi = {
+  list: () => get<Array<{ id: string; status: string; notes: string | null; updatedAt: string; opportunity: T.Opportunity }>>("/applications"),
+  create: (opportunityId: string) => send<{ id: string; status: string }>("post", "/applications", { opportunityId }),
+  status: (id: string, status: string, notes?: string) => send<{ id: string; status: string }>("patch", `/applications/${encodeURIComponent(id)}/status`, { status, notes }),
+  documents: () => get<Array<{id:string;kind:string;fileName:string;mimeType:string;sizeBytes:number;extractionConfirmedAt:string|null;createdAt:string}>>("/applications/documents"),
+  uploadDocument: async (file: File, kind: string) => { const r = await http.post("/applications/documents", file, { headers: { "Content-Type": file.type, "X-File-Name": file.name, "X-Document-Kind": kind } }); return r.data.data; },
+  confirmExtraction: (id:string) => send("patch", `/applications/documents/${encodeURIComponent(id)}/confirm-extraction`, { confirmed: true }),
+  deleteDocument: async (id:string) => { await http.delete(`/applications/documents/${encodeURIComponent(id)}`); },
+  receipt: (id:string, reference:string) => send("patch", `/applications/${encodeURIComponent(id)}/receipt`, { reference }),
+  package: (id:string) => get(`/applications/${encodeURIComponent(id)}/package`),
+};
+
 export const insightsApi = {
   national: () => get<{ indicators: T.Indicator[] }>("/insights/national").then((r) => r.indicators),
   districts: () => get<T.DistrictInsights>("/insights/districts"),

@@ -43,6 +43,12 @@ const schema = z.object({
   OPENROUTER_MODEL: z.string().default("meta-llama/llama-3.3-70b-instruct:free"),
   AI_TIMEOUT_MS: z.coerce.number().int().positive().default(15000),
 
+  DOCUMENT_STORAGE_DIR: z.string().default("./private-documents"),
+  DOCUMENT_ENCRYPTION_KEY: z.string().default(""),
+  DOCUMENT_MAX_BYTES: z.coerce.number().int().positive().default(10485760),
+  CLAMAV_HOST: z.string().default(""),
+  CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
+
   ANALYTICS_MIN_COHORT: z.coerce.number().int().min(1).default(10),
 });
 
@@ -60,6 +66,7 @@ const jwtSecret = raw.JWT_SECRET || raw.JWT_ACCESS_SECRET;
 if (isProd && (!jwtSecret || jwtSecret.length < 32)) {
   throw new Error("JWT_SECRET must be set to at least 32 characters in production");
 }
+if (isProd && raw.DOCUMENT_ENCRYPTION_KEY.length < 32) throw new Error("DOCUMENT_ENCRYPTION_KEY must be set to at least 32 characters in production");
 
 const configuredFrontendUrl = raw.FRONTEND_URL ?? raw.APP_BASE_URL;
 if (isProd && !configuredFrontendUrl) {
@@ -76,4 +83,5 @@ export const env = {
   FRONTEND_URL: frontendUrl,
   REQUIRE_EMAIL_VERIFICATION: raw.REQUIRE_EMAIL_VERIFICATION ?? isProd,
   corsOrigins: (raw.CORS_ORIGINS ?? frontendUrl).split(",").map((s) => s.trim().replace(/\/+$/, "")).filter(Boolean),
+  DOCUMENT_ENCRYPTION_KEY: raw.DOCUMENT_ENCRYPTION_KEY || "development-only-document-key-change-me",
 } as const;
