@@ -20,7 +20,7 @@ applicationsRouter.get("/documents", asyncHandler(async (req, res) => {
 applicationsRouter.post("/documents", express.raw({ type: ["application/pdf", "text/plain"], limit: env.DOCUMENT_MAX_BYTES }), asyncHandler(async (req, res) => {
   if (!Buffer.isBuffer(req.body) || req.body.length < 1) throw AppError.badRequest("Upload a PDF or plain text document");
   const userId = currentUserId(req); const mimeType = req.headers["content-type"] as string;
-  const name = String(req.headers["x-file-name"] ?? "document").replace(/[\\/\x00-\x1f]/g, "_").slice(0, 180);
+  const name = Array.from(String(req.headers["x-file-name"] ?? "document"), (char) => /[\\/]/.test(char) || char.charCodeAt(0) < 32 ? "_" : char).join("").slice(0, 180);
   const kind = String(req.headers["x-document-kind"] ?? "OTHER").slice(0, 40);
   if (mimeType === "application/pdf" && req.body.subarray(0, 5).toString() !== "%PDF-") throw AppError.badRequest("File content does not match PDF type");
   if (mimeType === "text/plain" && req.body.includes(0)) throw AppError.badRequest("Invalid text file");

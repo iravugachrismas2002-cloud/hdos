@@ -120,7 +120,7 @@ export const catalogApi = {
 };
 
 export const applicationsApi = {
-  list: () => get<Array<{ id: string; status: string; notes: string | null; updatedAt: string; opportunity: T.Opportunity }>>("/applications"),
+  list: () => get<Array<{ id: string; status: string; notes: string | null; updatedAt: string; submittedAt:string|null; receiptReference:string|null; events:{id:string;status:string;detail:string|null;createdAt:string}[]; opportunity: T.Opportunity }>>("/applications"),
   create: (opportunityId: string) => send<{ id: string; status: string }>("post", "/applications", { opportunityId }),
   status: (id: string, status: string, notes?: string) => send<{ id: string; status: string }>("patch", `/applications/${encodeURIComponent(id)}/status`, { status, notes }),
   documents: () => get<Array<{id:string;kind:string;fileName:string;mimeType:string;sizeBytes:number;extractionConfirmedAt:string|null;createdAt:string}>>("/applications/documents"),
