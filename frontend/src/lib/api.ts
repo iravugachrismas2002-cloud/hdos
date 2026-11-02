@@ -94,6 +94,9 @@ http.interceptors.response.use(
 /** Extracts the API's `{ error: { message } }` envelope, falling back to a generic message. */
 export const getErrorMessage = (error: unknown, fallback = "Something went wrong. Please try again."): string => {
   if (axios.isAxiosError<T.ApiErrorBody>(error)) {
+    if ([502, 503, 504].includes(error.response?.status ?? 0)) {
+      return "HDOS is still waking up. Please wait a little longer, then try signing in again.";
+    }
     const body = error.response?.data?.error;
     if (body?.details?.length) return body.details.map((d) => d.message).join(". ");
     if (body?.message) return body.message;
@@ -101,6 +104,13 @@ export const getErrorMessage = (error: unknown, fallback = "Something went wrong
   }
   return fallback;
 };
+
+const isTemporaryStartupError = (error: unknown): boolean => {
+  if (!axios.isAxiosError(error)) return false;
+  return !error.response || [502, 503, 504].includes(error.response.status);
+};
+
+const wait = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 export const getErrorCode = (error: unknown): string | undefined =>
   axios.isAxiosError<T.ApiErrorBody>(error) ? error.response?.data?.error?.code : undefined;
@@ -115,9 +125,26 @@ const send = async <R>(method: "post" | "put" | "patch", url: string, body?: unk
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    const session = await send<Session>("post", "/auth/login", { email, password });
-    accessToken = session.accessToken;
-    return session;
+    // Render Free may return a temporary gateway/network error while the API wakes.
+    // Keep the login UI in its waiting state and retry only transient failures;
+    // credentials and validation errors are returned immediately.
+    requestStarted();
+    try {
+      const retryDelays = [2_000, 5_000, 8_000, 12_000, 15_000];
+      for (let attempt = 0; ; attempt += 1) {
+        try {
+          const session = await send<Session>("post", "/auth/login", { email, password });
+          accessToken = session.accessToken;
+          return session;
+        } catch (error) {
+          const delay = retryDelays[attempt];
+          if (delay === undefined || !isTemporaryStartupError(error)) throw error;
+          await wait(delay);
+        }
+      }
+    } finally {
+      requestFinished();
+    }
   },
   register: (body: { email: string; password: string; name?: string; role: T.Role }) =>
     send<{ user: T.User; requiresVerification: boolean }>("post", "/auth/register", body),

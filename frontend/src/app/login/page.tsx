@@ -83,7 +83,7 @@ export default function LoginPage() {
           <PasswordInput id="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         <Button type="submit" className="w-full" disabled={busy || !email || !password}>
-          {busy ? "Signing in…" : "Sign in"}
+          {busy ? "Connecting to HDOS…" : "Sign in"}
         </Button>
       </form>
     </AuthCard>
