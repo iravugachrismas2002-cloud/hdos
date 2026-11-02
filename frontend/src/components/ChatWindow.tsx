@@ -149,7 +149,7 @@ export function ChatWindow() {
         {empty && !history.isError && (
           <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
             <div className="space-y-1">
-              <p className="font-medium">Ask me about careers, skills and study options in Rwanda.</p>
+              <p className="font-medium">Ask HDOS AI about careers, skills and study options in Rwanda.</p>
               <p className="text-sm text-muted-foreground">Try one of these to get started:</p>
             </div>
             <ul className="flex flex-wrap justify-center gap-2">
@@ -177,7 +177,7 @@ export function ChatWindow() {
             <li className="flex justify-start" role="status">
               <div className="flex items-center gap-2 rounded-2xl border bg-card px-4 py-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                HDOS Assistant is thinking…
+                Ask HDOS AI is thinking…
               </div>
             </li>
           )}

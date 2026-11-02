@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 const groups: { title: string; links: { href:string; label:string; icon:LucideIcon }[] }[] = [
   { title:"YOUR JOURNEY", links:[{href:"/dashboard",label:"Command centre",icon:LayoutDashboard},{href:"/goals",label:"Goals & roadmap",icon:Goal},{href:"/profile",label:"Life DNA",icon:UserRound}] },
-  { title:"DISCOVER & DECIDE", links:[{href:"/explore",label:"Opportunities",icon:Compass},{href:"/insights",label:"Workforce insights",icon:ChartNoAxesCombined},{href:"/assistant",label:"Decision assistant",icon:MessageSquare}] },
+  { title:"DISCOVER & DECIDE", links:[{href:"/explore",label:"Opportunities",icon:Compass},{href:"/insights",label:"Workforce insights",icon:ChartNoAxesCombined},{href:"/assistant",label:"Ask HDOS AI",icon:MessageSquare}] },
   { title:"TAKE ACTION", links:[{href:"/applications",label:"Applications",icon:BriefcaseBusiness},{href:"/applications#documents",label:"Document vault",icon:FileText}] },
 ];
 
