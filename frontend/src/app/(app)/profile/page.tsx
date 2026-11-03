@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DeleteAccount } from "@/components/DeleteAccount";
 import { SkillPicker } from "@/components/SkillPicker";
@@ -23,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { useAppearance } from "@/contexts/AppearanceContext";
 
 interface FormState {
+  avatarData: string | null;
   educationLevel: EducationLevel;
   districtId: string;
   birthYear: string;
@@ -32,7 +34,40 @@ interface FormState {
   sectorIds: string[];
 }
 
-const EMPTY: FormState = { educationLevel: "UPPER_SECONDARY", districtId: "", birthYear: "", bio: "", income: "", skills: [], sectorIds: [] };
+const EMPTY: FormState = { avatarData: null, educationLevel: "UPPER_SECONDARY", districtId: "", birthYear: "", bio: "", income: "", skills: [], sectorIds: [] };
+
+const resizeAvatar = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      reject(new Error("Choose a JPEG, PNG, or WebP image."));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      reject(new Error("Profile images must be 5 MB or smaller."));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("The image could not be read."));
+    reader.onload = () => {
+      const source = new window.Image();
+      source.onerror = () => reject(new Error("The selected file is not a valid image."));
+      source.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = Math.min(1, 256 / Math.max(source.width, source.height));
+        canvas.width = Math.max(1, Math.round(source.width * scale));
+        canvas.height = Math.max(1, Math.round(source.height * scale));
+        canvas.getContext("2d")?.drawImage(source, 0, 0, canvas.width, canvas.height);
+        const result = canvas.toDataURL("image/jpeg", 0.82);
+        if (result.length > 400_000) {
+          reject(new Error("The image is too detailed. Please choose a smaller image."));
+        } else {
+          resolve(result);
+        }
+      };
+      source.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
 
 export default function ProfilePage() {
   const { t } = useAppearance();
@@ -49,6 +84,7 @@ export default function ProfilePage() {
     const p = profile.data;
     if (!p) return;
     setForm({
+      avatarData: p.avatarData,
       educationLevel: p.educationLevel,
       districtId: p.districtId ?? "",
       birthYear: p.birthYear?.toString() ?? "",
@@ -75,6 +111,7 @@ export default function ProfilePage() {
     setSaved("");
     setError("");
     save.mutate({
+      avatarData: form.avatarData,
       educationLevel: form.educationLevel,
       districtId: form.districtId || null,
       birthYear: form.birthYear ? Number(form.birthYear) : null,
@@ -110,6 +147,28 @@ export default function ProfilePage() {
       <form onSubmit={onSubmit} className="space-y-6">
         <FormError message={error} />
         <FormSuccess message={saved} />
+
+        <Card>
+          <CardHeader><CardTitle>Profile photo</CardTitle><CardDescription>A clear photo helps you present yourself when preparing applications.</CardDescription></CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-4">
+            <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-full bg-blue-100 text-2xl font-bold text-blue-700">
+              {form.avatarData ? <Image src={form.avatarData} alt="Your profile photo" width={96} height={96} unoptimized className="h-full w-full object-cover" /> : "U"}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="avatar">Upload photo</Label>
+              <Input id="avatar" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                resizeAvatar(file).then((avatarData) => {
+                  setForm((current) => ({ ...current, avatarData }));
+                  setError("");
+                }).catch((uploadError: unknown) => setError(uploadError instanceof Error ? uploadError.message : "The image could not be uploaded."));
+              }} />
+              <p className="text-xs text-muted-foreground">JPEG, PNG, or WebP. It is resized to a secure profile thumbnail.</p>
+              {form.avatarData && <Button type="button" variant="ghost" size="sm" onClick={() => setForm((current) => ({ ...current, avatarData: null }))}>Remove photo</Button>}
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader><CardTitle>{t("About you")}</CardTitle></CardHeader>

@@ -716,6 +716,7 @@ model Profile {
   districtId             String?
   birthYear              Int?
   bio                    String?
+  avatarData             String?        @db.Text
   targetMonthlyIncomeRwf Int?
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt

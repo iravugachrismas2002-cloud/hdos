@@ -22,6 +22,11 @@ export const profileSchema = z.object({
   districtId: z.string().min(1).nullish(),
   birthYear: z.number().int().min(1930).max(new Date().getFullYear() - 10).nullish(),
   bio: z.string().trim().max(500).nullish(),
+  avatarData: z
+    .string()
+    .regex(/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/, "Profile image must be a JPEG, PNG, or WebP")
+    .max(400_000)
+    .nullish(),
   targetMonthlyIncomeRwf: z.number().int().min(0).max(100_000_000).nullish(),
   skills: z
     .array(z.object({ skillId: z.string().min(1), level: z.number().int().min(1).max(5) }))
@@ -44,6 +49,7 @@ const toDto = (p: NonNullable<Awaited<ReturnType<typeof loadProfile>>>) => ({
   districtName: p.district?.name ?? null,
   birthYear: p.birthYear,
   bio: p.bio,
+  avatarData: p.avatarData,
   targetMonthlyIncomeRwf: p.targetMonthlyIncomeRwf,
   skills: p.skills.map((s) => ({ skillId: s.skillId, name: s.skill.name, level: s.level })),
   sectorInterests: p.interests.map((i) => ({ sectorId: i.sectorId, name: i.sector.name })),
@@ -87,6 +93,7 @@ export const saveProfile = async (userId: string, input: ProfileInputDto) => {
     districtId: input.districtId ?? null,
     birthYear: input.birthYear ?? null,
     bio: input.bio?.trim() || null,
+    avatarData: input.avatarData ?? null,
     targetMonthlyIncomeRwf: input.targetMonthlyIncomeRwf ?? null,
   };
 

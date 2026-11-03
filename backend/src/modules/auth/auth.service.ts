@@ -43,6 +43,7 @@ export interface PublicUser {
   name: string | null;
   role: Role;
   emailVerified: boolean;
+  avatarData: string | null;
   profileComplete: boolean;
 }
 
@@ -60,6 +61,7 @@ const toPublicUser = async (user: Pick<User, "id" | "email" | "name" | "role" | 
       districtId: true,
       birthYear: true,
       bio: true,
+      avatarData: true,
       targetMonthlyIncomeRwf: true,
       _count: { select: { skills: true, interests: true } },
     },
@@ -81,6 +83,7 @@ const toPublicUser = async (user: Pick<User, "id" | "email" | "name" | "role" | 
     name: user.name,
     role: user.role,
     emailVerified: user.emailVerified,
+    avatarData: profile?.avatarData ?? null,
     // "Complete enough for useful matches": education + at least one skill.
     profileComplete: completeness >= 55,
   };

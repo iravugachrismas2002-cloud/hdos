@@ -31,7 +31,7 @@ httpOnly refresh cookie never needs cross-origin credentials.
 
 ```ts
 type SourceRef = { id: string; name: string; publisher: string; url: string | null; publishedAt: string | null; isDemo: boolean };
-type User = { id: string; email: string; name: string | null; role: Role; emailVerified: boolean; profileComplete: boolean };
+type User = { id: string; email: string; name: string | null; role: Role; emailVerified: boolean; avatarData: string | null; profileComplete: boolean };
 ```
 
 ## Auth
@@ -62,6 +62,7 @@ type Profile = {
   districtId: string | null; districtName: string | null;
   birthYear: number | null;
   bio: string | null;
+  avatarData: string | null;       // resized JPEG/PNG/WebP data URL, max 400 KB
   targetMonthlyIncomeRwf: number | null;
   skills: { skillId: string; name: string; level: 1 | 2 | 3 | 4 | 5 }[];
   sectorInterests: { sectorId: string; name: string }[];

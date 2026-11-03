@@ -25,19 +25,19 @@ export interface OpportunitySource {
   category: "JOBS" | "SCHOLARSHIPS" | "LEARNING" | "BUSINESS"; description: string; focus: string[];
 }
 export interface User {
-  id: string; email: string; name: string | null; role: Role; emailVerified: boolean; profileComplete: boolean;
+  id: string; email: string; name: string | null; role: Role; emailVerified: boolean; avatarData: string | null; profileComplete: boolean;
 }
 
 export interface Profile {
   educationLevel: EducationLevel;
   districtId: string | null; districtName: string | null;
-  birthYear: number | null; bio: string | null; targetMonthlyIncomeRwf: number | null;
+  birthYear: number | null; bio: string | null; avatarData: string | null; targetMonthlyIncomeRwf: number | null;
   skills: { skillId: string; name: string; level: number }[];
   sectorInterests: { sectorId: string; name: string }[];
   completeness: number; updatedAt: string;
 }
 export interface ProfileInput {
-  educationLevel: EducationLevel;
+  educationLevel: EducationLevel; avatarData: string | null;
   districtId: string | null; birthYear: number | null; bio: string | null; targetMonthlyIncomeRwf: number | null;
   skills: { skillId: string; level: number }[]; sectorIds: string[];
 }
