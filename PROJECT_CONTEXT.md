@@ -17,6 +17,11 @@ next steps.
 - Document vault and application preparation workflows.
 - Rule-based guidance with optional AI providers and an admin monitoring surface.
 
+The Project Book also describes future payment services, automated data-refresh pipelines, OCR, durable
+object storage, institution-authorized submission connectors, predictive labour-market modelling, and
+knowledge-graph capabilities. Those are not part of the current MVP runtime and must not be represented as
+implemented until their services, authorization, tests, and operational controls exist.
+
 The profile fields that affect matching are education, skills, sector interests, district, income
 target, and goals. Saving a profile invalidates stale recommendation queries so the next result uses
 the latest information. Profile photos improve account identity and application readiness; they are

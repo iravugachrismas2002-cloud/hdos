@@ -39,3 +39,25 @@ The application compiles and its available automated checks pass. The portal sho
 ## Release decision
 
 **Code verification: pass. Production launch for applicant document storage and external submission: not ready.** Resolve the storage location/authorization, durable encrypted object storage, malware scanning operations, scheduled retention, PDF extraction requirements, and institution-by-institution authorization before enabling those workflows for live applicants.
+
+## Project Book alignment audit
+
+The HDOS Rwanda Project Book describes a long-term platform with six core intelligence areas,
+application services, a secure document vault, national data intelligence, AI guidance,
+commercial/payment services, institutional analytics, and future predictive capabilities.
+
+The current build includes the usable MVP foundation:
+
+- authentication, roles, profile/Life DNA, goals, roadmaps, progress, and explainable matching;
+- Rwanda catalogue data, source provenance, national and district insights, and opportunity discovery;
+- deterministic pathway scoring with missing-skill explanations;
+- optional provider-backed AI with deterministic fallback guidance;
+- application tracking, source-backed eligibility checks, document readiness, encrypted document storage,
+  and review-first AI document preparation;
+- aggregate admin monitoring, deployment health checks, migrations, seeds, and CI/build gates.
+
+The following Project Book areas are intentionally not claimed as complete because the repository has no
+working implementation for them: payment/subscription processing, scheduled external data ingestion and
+refresh monitoring, PDF OCR/extraction, durable production object storage and disaster recovery,
+institution-authorized external submission connectors, and predictive labour-market models or a knowledge
+graph. They remain roadmap or production-readiness items, not silently omitted code.
