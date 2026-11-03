@@ -42,13 +42,13 @@ Intended interfaces:
 - Government Analytics Dashboard
 - Admin Panel
 Prefer one coherent Next.js application with clear routes and role-/permission-aware experiences unless the repository or requirements justify separate applications. Follow accessibility, responsive design, reusable component, form-validation, loading/error/empty-state, and consistent design-system practices.
-Backend
-- FastAPI
-- Python
-- Pydantic
-- SQLAlchemy
-- Celery for justified background jobs
-- Redis where needed for Celery or other demonstrated requirements
+Backend (implemented repository baseline)
+- Express
+- TypeScript
+- Zod validation
+- Prisma
+- PostgreSQL
+- Background jobs only when a demonstrated requirement justifies them
 Intended responsibilities:
 - API services and business logic
 - Authentication and authorization integration
@@ -56,21 +56,19 @@ Intended responsibilities:
 - Data analytics
 - Scheduled or longer-running tasks
 - User and domain workflows
-Use typed request/response models, explicit service boundaries, consistent error responses, input validation, structured logging, and tests. Do not introduce Celery/Redis tasks for simple synchronous work that does not need them.
+Use typed request/response models, explicit service boundaries, consistent error responses, input validation, structured logging, and tests. Do not introduce a second backend runtime or background-job infrastructure for simple synchronous work that does not need it.
 Database and persistence
 - PostgreSQL
 - Prisma ORM
 - pgvector where vector search/embedding retrieval has a defined use case
-- SQLAlchemy for Python-side data access where required by the existing FastAPI implementation
 Intended domains include users, profiles, goals, skills, careers, education programs, institutions, opportunities, datasets, roadmaps, recommendations, and progress.
 
-Important ORM rule: Prisma and SQLAlchemy may coexist only with a clearly defined data-access and schema-management strategy. Inspect the current repository and establish:
-- Which service uses each ORM and why.
+Important ORM rule: Prisma is the repository's sole ORM and schema-management workflow. Inspect the current repository and establish:
+- Which service owns persistence and why.
 - Which schema is authoritative.
 - Which single migration workflow is authoritative.
 - How shared tables, model definitions, transactions, generated types, and schema changes remain consistent.
-- Whether one ORM is unused or creates unnecessary duplication.
-Do not silently remove either ORM, add another ORM, or introduce conflicting migration systems. Recommend a simpler arrangement when justified by actual repository evidence, and document the trade-offs before a high-impact change.
+Do not add another ORM or introduce a conflicting migration system. Recommend a simpler arrangement when justified by actual repository evidence, and document the trade-offs before a high-impact change.
 AI layer
 - OpenAI GPT
 - Local Llama models where their cost, privacy, latency, or deployment benefits justify them
@@ -165,7 +163,7 @@ Scope
 - Explain why an opportunity matches or does not match the user's stated profile.
 - Distinguish confirmed eligibility from a preliminary match that requires the provider's final decision.
 - Handle expired, withdrawn, incomplete, and unverified opportunities responsibly.
-- Add notification/background jobs only where required; use Celery/Redis if the current architecture supports and justifies it.
+- Add notification/background jobs only where required; use the existing Node.js architecture and justify any new infrastructure.
 Acceptance criteria
 - Opportunity detail includes provenance and relevant dates.
 - Expired or unverified records are clearly labeled.
