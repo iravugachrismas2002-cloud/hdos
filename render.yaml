@@ -1,0 +1,80 @@
+# Render Blueprint: deploys the API, the web app and PostgreSQL with native Node runtimes (no Docker).
+# Usage: Render dashboard -> New -> Blueprint -> select this repository. See DEPLOYMENT.md.
+databases:
+  - name: hdos-db
+    databaseName: hdos_db
+    user: hdos
+    plan: free
+
+services:
+  - type: web
+    name: hdos-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hdos-db
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      # Required in production for AES-256-GCM document encryption. Keep stable across deploys.
+      - key: DOCUMENT_ENCRYPTION_KEY
+        generateValue: true
+      # Public URL of the web app, e.g. https://hdos-web.onrender.com (set after the first deploy)
+      - key: APP_BASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      # Proxies in front of the API: Render edge + Next.js rewrite. Tune if rate limiting sees one shared IP.
+      - key: TRUST_PROXY_HOPS
+        value: "2"
+      # Defaults to true in production. Set to "false" ONLY if no SMTP provider is configured yet.
+      - key: REQUIRE_EMAIL_VERIFICATION
+        sync: false
+      - key: SEED_ADMIN_EMAIL
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+      # Email (required to send verification / password-reset links). Any SMTP provider works.
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      # Optional: enables AI explanations (falls back to rule-based text without it)
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+
+  - type: web
+    name: hdos-web
+    runtime: node
+    rootDir: frontend
+    plan: free
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      # Public URL of hdos-backend, e.g. https://hdos-backend.onrender.com (needed at build time)
+      - key: BACKEND_URL
+        sync: false

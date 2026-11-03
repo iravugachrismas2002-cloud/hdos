@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    env:
+      PGUSER: hdos
+      PGPASSWORD: hdos_password
+      TEST_DATABASE_URL: postgresql://hdos:hdos_password@localhost:5432/hdos_db?schema=public
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      # Uses the PostgreSQL that ships with the ubuntu runner image (no containers).
+      - name: Start PostgreSQL
+        run: |
+          sudo systemctl start postgresql.service
+          sudo -u postgres psql -c "CREATE USER hdos WITH SUPERUSER PASSWORD 'hdos_password';"
+          sudo -u postgres createdb -O hdos hdos_db
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: ./backend
+        run: npx prisma generate
+
+      - name: Backend lint
+        working-directory: ./backend
+        run: npm run lint
+
+      - name: Backend type-check
+        working-directory: ./backend
+        run: npm run type-check
+
+      - name: Frontend lint
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Frontend type-check
+        working-directory: ./frontend
+        run: npm run type-check
+
+      - name: Apply migrations and seed test database
+        working-directory: ./backend
+        run: |
+          npx prisma migrate deploy
+          npm run seed
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+
+      - name: Backend tests (unit + integration)
+        working-directory: ./backend
+        run: npm test
+
+      - name: Build backend
+        working-directory: ./backend
+        run: npm run build
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
