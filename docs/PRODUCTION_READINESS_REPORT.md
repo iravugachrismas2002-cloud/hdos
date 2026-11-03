@@ -8,7 +8,7 @@
 | Check | Result |
 | --- | --- |
 | Prisma migration deploy | `No pending migrations to apply.` |
-| Prisma migration status | `3 migrations found`; `Database schema is up to date!` |
+| Prisma migration status | `7 migrations found`; `Database schema is up to date!` |
 | Backend tests | 3 files passed; 54 tests passed; 2 files / 27 tests skipped by existing test conditions |
 | Frontend tests | 2 passed, 0 failed (`node --test`) |
 | Backend type check | Passed |
@@ -22,7 +22,7 @@ Frontend tests use Node's built-in test runner (`npm test`) for two smoke checks
 
 ## Database
 
-`prisma migrate deploy` completed without pending migrations, and `prisma migrate status` confirmed the database schema is up to date with all three migrations. The target configured in the local environment is Render PostgreSQL in Oregon. This report does not establish that this region is authorized for Rwanda personal-data processing; confirm the applicable data transfer and residency requirements before handling applicant documents in production.
+`prisma migrate deploy` completed without pending migrations, and `prisma migrate status` confirmed the database schema is up to date with all seven migrations. The target configured in the local environment is Render PostgreSQL in Oregon. This report does not establish that this region is authorized for Rwanda personal-data processing; confirm the applicable data transfer and residency requirements before handling applicant documents in production.
 
 ## Production readiness findings
 
