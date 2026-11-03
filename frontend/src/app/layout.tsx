@@ -6,6 +6,16 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "HDOS Rwanda - Human Development Intelligence Operating System",
   description: "Turn your goals and Rwanda's public data into an explainable, trackable development pathway.",
+  icons: {
+    icon: [
+      {
+        url: "/hdos-rwanda-logo.png",
+        type: "image/png",
+        sizes: "768x768",
+      },
+    ],
+    apple: "/hdos-rwanda-logo.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
