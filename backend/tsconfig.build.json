@@ -1,5 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": { "noEmit": false, "declaration": false, "declarationMap": false },
-  "exclude": ["node_modules", "dist", "prisma", "src/**/*.test.ts", "src/__tests__"]
-}
