@@ -61,6 +61,7 @@ rollback considerations, and alternative hosting.
 ## Canonical documentation
 
 - [Project context](PROJECT_CONTEXT.md)
+- [User manual](USER%20MANUAL%20.MD)
 - [Engineering workflow](docs/WORKFLOW.md)
 - [API contract](docs/API.md)
 - [Data sources](docs/DATA_SOURCES.md)
