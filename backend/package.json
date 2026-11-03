@@ -22,7 +22,8 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "seed": "tsx src/seed/index.ts",
-    "seed:prod": "node dist/seed/index.js"
+    "seed:prod": "node dist/seed/index.js",
+    "smtp:test": "tsx scripts/test-smtp.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

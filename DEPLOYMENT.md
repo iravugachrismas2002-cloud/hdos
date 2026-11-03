@@ -73,6 +73,11 @@ overwrites an existing password), then the server.
 | backend | `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` | Creates the first administrator |
 | frontend | `BACKEND_URL` | Public URL of the backend (build time) |
 
+To test SMTP locally without exposing credentials, set the backend SMTP variables in `backend/.env`
+and run `npm run smtp:test` from `backend/`. The optional `SMTP_TEST_TO` variable selects a test
+recipient; otherwise the message is sent to `SMTP_USER`. This diagnostic sends one email and should
+not be run automatically during deployment.
+
 ### Free-tier caveats
 
 - Render free web services sleep after ~15 min of inactivity (first request takes ~30–60 s).
