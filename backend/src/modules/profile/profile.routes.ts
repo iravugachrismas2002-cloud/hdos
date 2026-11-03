@@ -3,7 +3,7 @@ import { Router } from "express";
 import { asyncHandler } from "../../lib/http";
 import { authenticate, currentUserId } from "../../middleware/auth";
 import { validate } from "../../middleware/validate";
-import { getProfile, profileSchema, saveProfile } from "./profile.service";
+import { avatarSchema, getProfile, profileSchema, saveAvatar, saveProfile } from "./profile.service";
 
 export const profileRouter = Router();
 
@@ -23,5 +23,13 @@ profileRouter.put(
   validate(profileSchema),
   asyncHandler(async (req, res) => {
     res.json({ data: { profile: await saveProfile(currentUserId(req), req.body) } });
+  }),
+);
+
+profileRouter.patch(
+  "/avatar",
+  validate(avatarSchema),
+  asyncHandler(async (req, res) => {
+    res.json({ data: { avatarData: await saveAvatar(currentUserId(req), req.body.avatarData ?? null) } });
   }),
 );

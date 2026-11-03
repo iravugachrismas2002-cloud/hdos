@@ -54,7 +54,9 @@ when `REQUIRE_EMAIL_VERIFICATION=true`.
 
 ## Profile ("Life DNA")
 
-`GET /profile` → `{ data: { profile: Profile | null } }`, `PUT /profile` → `{ data: { profile } }`
+`GET /profile` → `{ data: { profile: Profile | null } }`, `PUT /profile` → `{ data: { profile } }`, `PATCH /profile/avatar` → `{ data: { avatarData: string | null } }`.
+
+The avatar endpoint accepts a resized JPEG, PNG, or WebP data URL up to 400 KB, or `null` to remove it. It is authenticated and only changes the current user's profile photo.
 
 ```ts
 type Profile = {

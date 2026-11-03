@@ -36,6 +36,7 @@ export const profileSchema = z.object({
 });
 
 export type ProfileInputDto = z.infer<typeof profileSchema>;
+export const avatarSchema = profileSchema.pick({ avatarData: true });
 
 const profileInclude = {
   district: true,
@@ -70,6 +71,16 @@ const loadProfile = (userId: string) => prisma.profile.findUnique({ where: { use
 export const getProfile = async (userId: string) => {
   const profile = await loadProfile(userId);
   return profile ? toDto(profile) : null;
+};
+
+export const saveAvatar = async (userId: string, avatarData: string | null) => {
+  const profile = await prisma.profile.upsert({
+    where: { userId },
+    create: { userId, avatarData },
+    update: { avatarData },
+    select: { avatarData: true },
+  });
+  return profile.avatarData;
 };
 
 /** Replaces skills and interests atomically so a half-saved profile can never be observed. */

@@ -169,6 +169,7 @@ export const authApi = {
 export const profileApi = {
   get: () => get<{ profile: T.Profile | null }>("/profile").then((r) => r.profile),
   save: (input: T.ProfileInput) => send<{ profile: T.Profile }>("put", "/profile", input).then((r) => r.profile),
+  saveAvatar: (avatarData: string | null) => send<{ avatarData: string | null }>("patch", "/profile/avatar", { avatarData }).then((r) => r.avatarData),
 };
 
 export const catalogApi = {
