@@ -22,7 +22,7 @@ export function ApiStartupNotice() {
       <Loader2 className="mt-0.5 h-5 w-5 shrink-0 animate-spin text-primary" aria-hidden="true" />
       <div>
         <p className="font-semibold">{t("HDOS is starting…")}</p>
-        <p className="mt-0.5 text-sm text-muted-foreground">{t("Please wait a few moments. The first request can take up to a minute on the free plan.")}</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">{t("Render is waking HDOS. Please wait up to 60 seconds; the page will continue automatically when the service is ready.")}</p>
       </div>
     </div>
   );

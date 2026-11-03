@@ -7,7 +7,7 @@ import { AppError } from "../../lib/errors";
 import { asyncHandler } from "../../lib/http";
 import { authenticate, currentUserId } from "../../middleware/auth";
 import { validate } from "../../middleware/validate";
-import { deleteDocument, getDocument, putDocument, scanWithClamAv, sha256 } from "./document-storage";
+import { deleteDocument, encryptDocument, getDocument, putDocument, scanWithClamAv, sha256 } from "./document-storage";
 import { env } from "../../config/env";
 import { randomUUID } from "node:crypto";
 
@@ -32,15 +32,15 @@ applicationsRouter.post("/documents", express.raw({ type: ["application/pdf", "t
   if (mimeType === "application/pdf" && req.body.subarray(0, 5).toString() !== "%PDF-") throw AppError.badRequest("File content does not match PDF type");
   if (mimeType === "text/plain" && req.body.includes(0)) throw AppError.badRequest("Invalid text file");
   try { await scanWithClamAv(req.body); } catch (error) { throw AppError.badRequest(error instanceof Error ? error.message : "Malware scan failed", "UPLOAD_SCAN_FAILED"); }
-  const id = randomUUID(); const hash = sha256(req.body); const storageKey = await putDocument(userId, id, req.body);
+  const id = randomUUID(); const hash = sha256(req.body); const storageKey = await putDocument(userId, id, req.body); const encryptedBytes = encryptDocument(req.body);
   const extractedText = mimeType === "text/plain" ? { text: req.body.toString("utf8").slice(0, 20000), source: "plain-text", verified: false } : null;
   const groupId = previous?.groupId ?? id; const version = previous ? previous.version + 1 : 1;
   const expiryHeader = req.headers["x-expires-at"];
   const expiresAt = typeof expiryHeader === "string" ? new Date(expiryHeader) : undefined;
   if (expiresAt && Number.isNaN(expiresAt.getTime())) throw AppError.badRequest("Expiry date is invalid");
   const data = await prisma.$transaction(async tx => {
-    const created = await tx.applicantDocument.create({ data: { id, userId, kind, groupId, version, status: extractedText ? "AWAITING_CONFIRMATION" : "UPLOADED", fileName: name, mimeType, sizeBytes: req.body.length, sha256: hash, storageKey, expiresAt, ...(extractedText ? { extractedText } : {}) } });
-    await tx.applicantDocumentVersion.create({ data: { documentId: id, version, storageKey, sha256: hash, fileName: name, mimeType, sizeBytes: req.body.length } });
+    const created = await tx.applicantDocument.create({ data: { id, userId, kind, groupId, version, status: extractedText ? "AWAITING_CONFIRMATION" : "UPLOADED", fileName: name, mimeType, sizeBytes: req.body.length, sha256: hash, storageKey, encryptedBytes, expiresAt, ...(extractedText ? { extractedText } : {}) } });
+    await tx.applicantDocumentVersion.create({ data: { documentId: id, version, storageKey, encryptedBytes, sha256: hash, fileName: name, mimeType, sizeBytes: req.body.length } });
     if (extractedText) await tx.documentExtraction.create({ data: { documentId: id, source: "plain-text", extractedData: extractedText } });
     return created;
   });
@@ -52,7 +52,7 @@ applicationsRouter.get("/documents/:id/download", asyncHandler(async (req, res) 
   const row = await prisma.applicantDocument.findFirst({ where: { id: req.params.id, deletedAt: null } });
   if (!row) throw AppError.notFound("Document not found");
   if (row.userId !== userId) throw AppError.forbidden("You do not have permission to download this document");
-  const file = await getDocument(row.userId, row.id);
+  const file = await getDocument(row.userId, row.id, row.encryptedBytes);
   await prisma.documentAccessLog.create({ data: { documentId: row.id, userId: row.userId, action: "DOWNLOAD" } });
   res.setHeader("Content-Type", row.mimeType); res.setHeader("Content-Disposition", `attachment; filename="${row.fileName.replace(/"/g, "")}"`); res.setHeader("Cache-Control", "private, no-store"); res.send(file);
 }));
@@ -92,6 +92,63 @@ applicationsRouter.post("/", validate(z.object({ opportunityId: z.string().min(1
   if (!opportunity) throw AppError.notFound("Opportunity not found");
   const row = await prisma.applicantApplication.upsert({ where: { userId_opportunityId: { userId: currentUserId(req), opportunityId: opportunity.id } }, create: { userId: currentUserId(req), opportunityId: opportunity.id, status: "DISCOVERED" }, update: {} });
   res.status(201).json({ data: row });
+}));
+applicationsRouter.post("/:id/ai-prepare", asyncHandler(async (req, res) => {
+  const userId = currentUserId(req);
+  const application = await prisma.applicantApplication.findFirst({
+    where: { id: req.params.id, userId },
+    include: { opportunity: { include: { requirements: { where: { kind: "document", effectiveUntil: null } } } } },
+  });
+  if (!application) throw AppError.notFound("Application not found");
+  if (!application.opportunity.requirements.length) {
+    throw AppError.conflict("This opportunity has no configured document requirements. Review its official announcement first.", "DOCUMENT_REQUIREMENTS_NOT_CONFIGURED");
+  }
+  const vault = await prisma.applicantDocument.findMany({ where: { userId, deletedAt: null }, orderBy: { version: "desc" } });
+  const latest = new Map<string, typeof vault[number]>();
+  for (const document of vault) if (!latest.has(document.groupId)) latest.set(document.groupId, document);
+  const candidates = [...latest.values()].filter((document) =>
+    ["UPLOADED", "VERIFIED"].includes(document.status)
+    && (!document.expiresAt || document.expiresAt > new Date())
+    && !(document.extractedText && !document.extractionConfirmedAt),
+  );
+  const selected = application.opportunity.requirements.flatMap((requirement) => {
+    const accepted = Array.isArray(requirement.acceptedEvidence)
+      ? requirement.acceptedEvidence.filter((value): value is string => typeof value === "string")
+      : [];
+    const categories = accepted.length ? accepted : [requirement.key];
+    return candidates.filter((document) => categories.includes(document.kind)).slice(0, Math.max(1, requirement.minimumCount));
+  }).filter((document, index, all) => all.findIndex((candidate) => candidate.id === document.id) === index);
+  if (selected.length) {
+    await prisma.$transaction(selected.map((document) => prisma.applicationDocument.upsert({
+      where: { applicationId_documentId: { applicationId: application.id, documentId: document.id } },
+      create: {
+        applicationId: application.id,
+        documentId: document.id,
+        snapshotStorageKey: document.storageKey,
+        sha256: document.sha256,
+        version: document.version,
+        opportunityRequirementsVersion: Math.max(...application.opportunity.requirements.map((requirement) => requirement.version)),
+      },
+      update: {},
+    })));
+  }
+  const missing = application.opportunity.requirements.filter((requirement) => {
+    if (!requirement.mandatory) return false;
+    const accepted = Array.isArray(requirement.acceptedEvidence)
+      ? requirement.acceptedEvidence.filter((value): value is string => typeof value === "string")
+      : [];
+    const categories = accepted.length ? accepted : [requirement.key];
+    return candidates.filter((document) => categories.includes(document.kind)).length < Math.max(1, requirement.minimumCount);
+  });
+  let status = application.status;
+  if (!missing.length && ["DISCOVERED", "ELIGIBLE", "DOCUMENTS_REQUIRED"].includes(application.status)) {
+    status = "PREPARING";
+    await prisma.$transaction([
+      prisma.applicantApplication.update({ where: { id: application.id }, data: { status } }),
+      prisma.applicationEvent.create({ data: { applicationId: application.id, status, detail: "HDOS AI matched the applicant document vault to the opportunity checklist." } }),
+    ]);
+  }
+  res.json({ data: { applicationId: application.id, status, attached: selected.length, missing: missing.map((requirement) => requirement.key), reviewRequired: true } });
 }));
 applicationsRouter.get("/:id/eligibility", asyncHandler(async (req, res) => {
   const userId = currentUserId(req);

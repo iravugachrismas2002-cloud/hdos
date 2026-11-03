@@ -63,12 +63,13 @@ Database and persistence
 - pgvector where vector search/embedding retrieval has a defined use case
 Intended domains include users, profiles, goals, skills, careers, education programs, institutions, opportunities, datasets, roadmaps, recommendations, and progress.
 
-Important ORM rule: Prisma is the repository's sole ORM and schema-management workflow. Inspect the current repository and establish:
-- Which service owns persistence and why.
+Important ORM rule: Prisma and SQLAlchemy may coexist only with a clearly defined data-access and schema-management strategy. Inspect the current repository and establish:
+- Which service uses each ORM and why.
 - Which schema is authoritative.
 - Which single migration workflow is authoritative.
 - How shared tables, model definitions, transactions, generated types, and schema changes remain consistent.
-Do not add another ORM or introduce a conflicting migration system. Recommend a simpler arrangement when justified by actual repository evidence, and document the trade-offs before a high-impact change.
+- Whether one ORM is unused or creates unnecessary duplication.
+Do not silently remove either ORM, add another ORM, or introduce conflicting migration systems. Recommend a simpler arrangement when justified by actual repository evidence, and document the trade-offs before a high-impact change.
 AI layer
 - OpenAI GPT
 - Local Llama models where their cost, privacy, latency, or deployment benefits justify them

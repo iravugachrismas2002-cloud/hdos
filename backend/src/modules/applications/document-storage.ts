@@ -9,22 +9,32 @@ const root = path.resolve(env.DOCUMENT_STORAGE_DIR);
 const storagePath = (userId: string, id: string) => path.join(root, createHash("sha256").update(userId).digest("hex"), `${id}.enc`);
 export const sha256 = (data: Buffer) => createHash("sha256").update(data).digest("hex");
 
-export async function putDocument(userId: string, id: string, data: Buffer): Promise<string> {
+export function encryptDocument(data: Buffer): Buffer {
   if (!env.DOCUMENT_ENCRYPTION_CONFIGURED) throw new Error("Document encryption is not configured");
   const iv = randomBytes(12); const cipher = createCipheriv("aes-256-gcm", key, iv);
   const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
-  const file = storagePath(userId, id); await mkdir(path.dirname(file), { recursive: true });
-  await writeFile(file, Buffer.concat([Buffer.from("HDOC1"), iv, cipher.getAuthTag(), encrypted]), { mode: 0o600 });
-  return file;
+  return Buffer.concat([Buffer.from("HDOC1"), iv, cipher.getAuthTag(), encrypted]);
 }
 
-export async function getDocument(userId: string, id: string): Promise<Buffer> {
-  if (!env.DOCUMENT_ENCRYPTION_CONFIGURED) throw new Error("Document encryption is not configured");
-  const payload = await readFile(storagePath(userId, id));
+function decryptDocument(payload: Buffer): Buffer {
   if (payload.subarray(0, 5).toString() !== "HDOC1") throw new Error("Invalid encrypted document");
   const decipher = createDecipheriv("aes-256-gcm", key, payload.subarray(5, 17));
   decipher.setAuthTag(payload.subarray(17, 33));
   return Buffer.concat([decipher.update(payload.subarray(33)), decipher.final()]);
+}
+
+export async function putDocument(userId: string, id: string, data: Buffer): Promise<string> {
+  if (!env.DOCUMENT_ENCRYPTION_CONFIGURED) throw new Error("Document encryption is not configured");
+  const encrypted = encryptDocument(data);
+  const file = storagePath(userId, id); await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, encrypted, { mode: 0o600 });
+  return file;
+}
+
+export async function getDocument(userId: string, id: string, encryptedBytes?: Buffer | null): Promise<Buffer> {
+  if (!env.DOCUMENT_ENCRYPTION_CONFIGURED) throw new Error("Document encryption is not configured");
+  const payload = encryptedBytes ?? await readFile(storagePath(userId, id));
+  return decryptDocument(payload);
 }
 
 export async function deleteDocument(userId: string, id: string) { await rm(storagePath(userId, id), { force: true }); }

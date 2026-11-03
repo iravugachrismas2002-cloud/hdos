@@ -110,15 +110,19 @@ updating the profile because new skills, interests, or education can change the 
 
 ## 9. Applications and documents
 
-Use **Applications** to track opportunities that you are preparing for or have submitted.
+Use **Applications** to track opportunities that you are preparing for or have submitted. On an
+opportunity card, **Apply with HDOS AI** creates the application and matches confirmed documents
+from your vault to the provider checklist. Review the resulting draft and submit only through the
+provider's official channel; HDOS never submits an external application unattended.
 
 The document vault supports controlled document workflows such as CVs, certificates, transcripts,
 identity documents, recommendation letters, and other application evidence. Upload only documents
 you are authorized to store. Review file name, category, expiry date, extraction status, and
 verification state before attaching a document to an application.
 
-Do not upload passwords, API keys, or unrelated private data. A document may be retained when it is
-part of an application package.
+Do not upload passwords, API keys, or unrelated private data. Uploaded document bytes are encrypted
+and persisted with the application service database so they survive a service restart or redeploy.
+A document may be retained when it is part of an application package.
 
 ## 10. Ask HDOS AI
 

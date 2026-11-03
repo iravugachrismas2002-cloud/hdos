@@ -69,7 +69,8 @@ overwrites an existing password), then the server.
 | backend | `TRUST_PROXY_HOPS` | Proxies in front of the API (default 2 in `render.yaml`). If every user shows the same IP in rate limiting, adjust by 1 |
 | backend | `SMTP_HOST/PORT/USER/PASS/FROM` | Email delivery (Brevo, Mailgun, Resend SMTP, Gmail app password …) |
 | backend | `REQUIRE_EMAIL_VERIFICATION` | Defaults to `true` in production. Without working SMTP, nobody can verify, so set `false` until email works |
-| backend | `GEMINI_API_KEY` | Optional. Without it the app uses rule-based explanations |
+| backend | `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY` | Configure at least one provider for live AI answers; the chain fails over in this order and otherwise uses deterministic HDOS guidance |
+| backend | `DOCUMENT_ENCRYPTION_KEY` | Required stable 32+ character secret; uploaded documents are encrypted before PostgreSQL persistence |
 | backend | `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` | Creates the first administrator |
 | frontend | `BACKEND_URL` | Public URL of the backend (build time) |
 
@@ -80,7 +81,9 @@ not be run automatically during deployment.
 
 ### Free-tier caveats
 
-- Render free web services sleep after ~15 min of inactivity (first request takes ~30–60 s).
+- Render free web services sleep after ~15 min of inactivity. HDOS keeps the browser request open
+  and retries transient gateway/startup failures for about 42 seconds, while showing a wake-up
+  notice. This is compatible with Render's free-plan behavior; it does not run a self-ping loop.
 - Render's free Postgres expires after 30 days. For a long-lived demo use a free [Neon](https://neon.tech) database
   instead: delete the `databases:` block and the `fromDatabase` reference in `render.yaml` and set `DATABASE_URL`
   to the Neon connection string (`?sslmode=require`).

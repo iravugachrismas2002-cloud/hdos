@@ -546,7 +546,7 @@ model ApplicantProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-/// File bytes live in private object storage; this table contains metadata only.
+/// File bytes are encrypted before persistence; storageKey remains for filesystem compatibility.
 model ApplicantDocument {
   id String @id @default(cuid())
   userId String
@@ -560,6 +560,7 @@ model ApplicantDocument {
   sizeBytes Int
   sha256 String
   storageKey String @unique
+  encryptedBytes Bytes?
   extractedText Json?
   extractionConfirmedAt DateTime?
   retentionUntil DateTime?
@@ -581,6 +582,7 @@ model ApplicantDocumentVersion {
   documentId String
   version Int
   storageKey String @unique
+  encryptedBytes Bytes?
   sha256 String
   fileName String
   sizeBytes Int

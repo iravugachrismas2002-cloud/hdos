@@ -35,6 +35,7 @@ const mocks = vi.hoisted(() => {
     storage,
     prisma,
     putDocument: vi.fn(async (_userId: string, id: string) => `private/${id}.enc`),
+    encryptDocument: vi.fn((data: Buffer) => Buffer.from(`encrypted-${data.length}`)),
     getDocument: vi.fn(async () => Buffer.from("%PDF-1.7\nprivate PDF content")),
     deleteDocument: vi.fn(async () => undefined),
     scanWithClamAv: vi.fn(async () => undefined),
@@ -44,6 +45,7 @@ const mocks = vi.hoisted(() => {
 vi.mock("../lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("../modules/applications/document-storage", () => ({
   putDocument: mocks.putDocument,
+  encryptDocument: mocks.encryptDocument,
   getDocument: mocks.getDocument,
   deleteDocument: mocks.deleteDocument,
   scanWithClamAv: mocks.scanWithClamAv,
@@ -100,6 +102,7 @@ describe("applicant document vault integration", () => {
   afterEach(() => {
     for (const id of Object.keys(mocks.documents)) delete mocks.documents[id];
     mocks.putDocument.mockClear();
+    mocks.encryptDocument.mockClear();
     mocks.getDocument.mockClear();
     mocks.deleteDocument.mockClear();
     mocks.scanWithClamAv.mockClear();

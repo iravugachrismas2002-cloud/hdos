@@ -57,15 +57,22 @@ interface Session { accessToken: string; user: T.User }
 let refreshing: Promise<Session> | null = null;
 
 export const refreshSession = (): Promise<Session> => {
-  refreshing ??= http
-    .post<{ data: Session }>("/auth/refresh")
-    .then((res) => {
-      accessToken = res.data.data.accessToken;
-      return res.data.data;
-    })
-    .finally(() => {
-      refreshing = null;
-    });
+  refreshing ??= (async () => {
+    const retryDelays = [2_000, 5_000, 8_000, 12_000, 15_000];
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        const res = await http.post<{ data: Session }>("/auth/refresh");
+        accessToken = res.data.data.accessToken;
+        return res.data.data;
+      } catch (error) {
+        const delay = retryDelays[attempt];
+        if (delay === undefined || !isTemporaryStartupError(error)) throw error;
+        await wait(delay);
+      }
+    }
+  })().finally(() => {
+    refreshing = null;
+  });
   return refreshing;
 };
 
@@ -187,6 +194,7 @@ export const catalogApi = {
 export const applicationsApi = {
   list: () => get<Array<{ id: string; status: string; notes: string | null; updatedAt: string; submittedAt:string|null; receiptReference:string|null; events:{id:string;status:string;detail:string|null;createdAt:string}[]; opportunity: T.Opportunity }>>("/applications"),
   create: (opportunityId: string) => send<{ id: string; status: string }>("post", "/applications", { opportunityId }),
+  aiPrepare: (id: string) => send<{ applicationId: string; status: string; attached: number; missing: string[]; reviewRequired: boolean }>("post", `/applications/${encodeURIComponent(id)}/ai-prepare`, {}),
   status: (id: string, status: string, notes?: string, confirmSubmission?:boolean) => send<{ id: string; status: string }>("patch", `/applications/${encodeURIComponent(id)}/status`, { status, notes, confirmSubmission }),
   documents: () => get<Array<{id:string;groupId:string;version:number;kind:string;status:string;fileName:string;mimeType:string;sizeBytes:number;sha256:string;expiresAt:string|null;extractionConfirmedAt:string|null;createdAt:string;extractedText:{text?:string}|null}>>("/applications/documents"),
   uploadDocument: async (file: File, kind: string, replaceId?:string, expiresAt?:string) => { const r = await http.post("/applications/documents", file, { headers: { "Content-Type": file.type, "X-File-Name": file.name, "X-Document-Kind": kind, ...(replaceId?{"X-Replace-Document-Id":replaceId}:{}), ...(expiresAt?{"X-Expires-At":expiresAt}:{}) } }); return r.data.data; },
