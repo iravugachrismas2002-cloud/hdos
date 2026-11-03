@@ -6,6 +6,7 @@ import { ExternalLink } from "lucide-react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Pagination } from "@/components/Pagination";
 import { PathsExplorer } from "@/components/PathsExplorer";
+import { OpportunityApplyButton } from "@/components/OpportunityApplyButton";
 import { SourceBadge } from "@/components/SourceBadge";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/States";
 import { Badge } from "@/components/ui/badge";
@@ -196,9 +197,12 @@ function Opportunities() {
                   {o.deadline ? `Deadline ${formatDate(o.deadline)}` : o.isRolling ? "Rolling applications" : "Annual cycle: check dates"} ·{" "}
                   {o.lastVerifiedAt ? `Verified ${formatDate(o.lastVerifiedAt)}` : "Not yet verified"}
                 </p>
-                <div className="flex flex-wrap items-center gap-3">
-                  <SourceBadge source={o.source} compact />
-                  {o.url && <a className="text-xs text-primary underline" href={o.url} target="_blank" rel="noopener noreferrer">Official page</a>}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <OpportunityApplyButton opportunityId={o.id} />
+                  <div className="flex flex-wrap items-center gap-3">
+                    <SourceBadge source={o.source} compact />
+                    {o.url && <a className="text-xs text-primary underline" href={o.url} target="_blank" rel="noopener noreferrer">Official page</a>}
+                  </div>
                 </div>
               </CardContent>
             </Card>
