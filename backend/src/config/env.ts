@@ -50,6 +50,7 @@ const schema = z.object({
   DOCUMENT_MAX_BYTES: z.coerce.number().int().positive().default(10485760),
   CLAMAV_HOST: z.string().default(""),
   CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
+  ALLOW_UNSCANNED_DOCUMENT_UPLOADS: boolString.default("false"),
 
   ANALYTICS_MIN_COHORT: z.coerce.number().int().min(1).default(10),
 });

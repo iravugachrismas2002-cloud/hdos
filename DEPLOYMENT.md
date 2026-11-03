@@ -71,6 +71,8 @@ overwrites an existing password), then the server.
 | backend | `REQUIRE_EMAIL_VERIFICATION` | Defaults to `true` in production. Without working SMTP, nobody can verify, so set `false` until email works |
 | backend | `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY` | Configure at least one provider for live AI answers; the chain fails over in this order and otherwise uses deterministic HDOS guidance |
 | backend | `DOCUMENT_ENCRYPTION_KEY` | Required stable 32+ character secret; uploaded documents are encrypted before PostgreSQL persistence |
+| backend | `CLAMAV_HOST`, `CLAMAV_PORT` | Malware scanner endpoint required for secure document uploads |
+| backend | `ALLOW_UNSCANNED_DOCUMENT_UPLOADS` | Unsafe emergency fallback; defaults to `false` and should remain disabled when possible |
 | backend | `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` | Creates the first administrator |
 | frontend | `BACKEND_URL` | Public URL of the backend (build time) |
 

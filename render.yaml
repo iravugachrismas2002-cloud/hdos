@@ -64,6 +64,9 @@ services:
         sync: false
       - key: OPENROUTER_API_KEY
         sync: false
+      # Unsafe fallback: uploads are accepted without ClamAV only when explicitly enabled.
+      - key: ALLOW_UNSCANNED_DOCUMENT_UPLOADS
+        sync: false
 
   - type: web
     name: hdos-web

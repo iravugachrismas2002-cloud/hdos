@@ -31,7 +31,11 @@ applicationsRouter.post("/documents", express.raw({ type: ["application/pdf", "t
   if (previous && previous.kind !== kind) throw AppError.badRequest("Replacement must use the same document category");
   if (mimeType === "application/pdf" && req.body.subarray(0, 5).toString() !== "%PDF-") throw AppError.badRequest("File content does not match PDF type");
   if (mimeType === "text/plain" && req.body.includes(0)) throw AppError.badRequest("Invalid text file");
-  try { await scanWithClamAv(req.body); } catch (error) { throw AppError.badRequest(error instanceof Error ? error.message : "Malware scan failed", "UPLOAD_SCAN_FAILED"); }
+  if (env.CLAMAV_HOST) {
+    try { await scanWithClamAv(req.body); } catch (error) { throw AppError.badRequest(error instanceof Error ? error.message : "Malware scan failed", "UPLOAD_SCAN_FAILED"); }
+  } else if (!env.ALLOW_UNSCANNED_DOCUMENT_UPLOADS) {
+    throw AppError.unavailable("Malware scanning is not configured", "UPLOAD_SCAN_UNAVAILABLE");
+  }
   const id = randomUUID(); const hash = sha256(req.body); const storageKey = await putDocument(userId, id, req.body); const encryptedBytes = encryptDocument(req.body);
   const extractedText = mimeType === "text/plain" ? { text: req.body.toString("utf8").slice(0, 20000), source: "plain-text", verified: false } : null;
   const groupId = previous?.groupId ?? id; const version = previous ? previous.version + 1 : 1;
