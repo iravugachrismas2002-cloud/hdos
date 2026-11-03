@@ -16,6 +16,9 @@ type SourceRow = {
   name: string;
   publisher: string;
   url: string | null;
+  license?: string | null;
+  retrievedAt: Date;
+  notes?: string | null;
   publishedAt: Date | null;
   isDemo: boolean;
 };
@@ -25,6 +28,9 @@ export const toSourceRef = (s: SourceRow) => ({
   name: s.name,
   publisher: s.publisher,
   url: s.url,
+  license: s.license ?? null,
+  retrievedAt: s.retrievedAt.toISOString(),
+  notes: s.notes ?? null,
   publishedAt: s.publishedAt?.toISOString() ?? null,
   isDemo: s.isDemo,
 });

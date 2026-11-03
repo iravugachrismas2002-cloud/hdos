@@ -5,6 +5,11 @@ record is **illustrative / not verified** against an official page. "Verified" b
 official page while the seed was authored (**2026-10-30**, except rows with later check dates below). Nothing here
 has been signed off by the institutions or ministries themselves.
 
+The API exposes each source's `retrievedAt`, `publishedAt`, `license`, and editorial `notes` fields. The
+retrieval date is when HDOS last loaded the record, not the period described by the dataset. Eligibility and
+document checks remain review-required unless the applicant confirms their profile and checks the provider's
+current announcement.
+
 Ground rules applied to all data:
 
 - No salary figures are stored anywhere (`salaryMinRwf` / `salaryMaxRwf` are forced to NULL by the seed).

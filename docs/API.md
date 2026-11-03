@@ -30,7 +30,10 @@ httpOnly refresh cookie never needs cross-origin credentials.
 ## Shared shapes
 
 ```ts
-type SourceRef = { id: string; name: string; publisher: string; url: string | null; publishedAt: string | null; isDemo: boolean };
+type SourceRef = {
+  id: string; name: string; publisher: string; url: string | null; license: string | null;
+  retrievedAt: string; notes: string | null; publishedAt: string | null; isDemo: boolean;
+};
 type User = { id: string; email: string; name: string | null; role: Role; emailVerified: boolean; avatarData: string | null; profileComplete: boolean };
 ```
 
@@ -126,6 +129,16 @@ type DistrictStat = { districtId: string; name: string; province: string; popula
 Indicator codes include `LFS_UNEMPLOYMENT_RATE_Q4_2024`, `LFS_LFPR_2024`, `LFS_EMPLOYED_2024`, `LFS_UNEMPLOYED_2024`,
 `LFS_SHARE_AGRICULTURE_Q4_2024`, `LFS_SHARE_INDUSTRY_Q4_2024`, `LFS_SHARE_SERVICES_Q4_2024`, `LFS_EPR_YOUTH_Q4_2024`,
 `LFS_EPR_ADULT_Q4_2024`, `LFS_EPR_MALE_Q4_2024`, `LFS_EPR_FEMALE_Q4_2024`, `CENSUS_POPULATION_2022`, `CENSUS_MEDIAN_AGE_2022`, `CENSUS_URBAN_SHARE_2022`.
+
+## Application eligibility and documents (owner-only)
+
+- `GET /applications/:id/eligibility` evaluates the current applicant profile against the opportunity's
+  source-backed requirements. It returns `ELIGIBLE`, `NOT_ELIGIBLE`, or `REVIEW_REQUIRED`; it never
+  replaces the provider's final decision.
+- `GET /applications/:id/document-readiness` reports the configured checklist, available document
+  versions, missing mandatory documents, and confirmation requirements.
+- `POST /applications/:id/ai-prepare` matches confirmed vault documents to the checklist. It creates a
+  draft package only; the user must review it and submit through the provider's authorised channel.
 
 ## Goals, recommendations, roadmap (owner-only)
 

@@ -3,7 +3,9 @@
 HDOS is a human-development intelligence platform that turns user goals and trusted Rwanda
 reference data into explainable recommendations, roadmaps, opportunity discovery, and progress
 tracking. Demo catalogue records are clearly identified in the database and must be replaced or
-verified before a public launch.
+verified before a public launch. User-facing records expose their source, retrieval date and
+verification state; eligibility and AI document preparation remain review-first and never submit
+to an external provider automatically.
 
 ## Repository structure
 

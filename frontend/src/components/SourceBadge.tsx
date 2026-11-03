@@ -21,6 +21,7 @@ export function SourceBadge({ source, compact = false }: { source: SourceRef | n
         )}
         {!compact && <> · {source.publisher}</>}
       </span>
+      {!compact && <span title={source.notes ?? undefined}>· checked {new Date(source.retrievedAt).toLocaleDateString()}</span>}
     </span>
   );
 }

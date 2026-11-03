@@ -18,7 +18,8 @@ export interface ApiErrorBody {
 export interface Meta { page: number; pageSize: number; total: number }
 
 export interface SourceRef {
-  id: string; name: string; publisher: string; url: string | null; publishedAt: string | null; isDemo: boolean;
+  id: string; name: string; publisher: string; url: string | null; license: string | null;
+  retrievedAt: string; notes: string | null; publishedAt: string | null; isDemo: boolean;
 }
 export interface OpportunitySource {
   id: string; slug: string; name: string; publisher: string; url: string | null; isDemo: boolean;
@@ -61,6 +62,14 @@ export interface Opportunity {
   id: string; type: OpportunityType; title: string; provider: string; description: string | null;
   eligibility: string | null; minEducation: EducationLevel | null; deadline: string | null; isRolling: boolean;
   country: string | null; url: string | null; lastVerifiedAt: string | null; source: SourceRef;
+}
+export type EligibilityResult = "MET" | "NOT_MET" | "REVIEW_REQUIRED";
+export interface ApplicationEligibility {
+  outcome: "ELIGIBLE" | "NOT_ELIGIBLE" | "REVIEW_REQUIRED";
+  profileConfirmed: boolean;
+  requirements: {
+    requirementId: string; key: string; description: string; mandatory: boolean; result: EligibilityResult;
+  }[];
 }
 
 export interface Indicator {
