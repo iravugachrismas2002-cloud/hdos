@@ -198,7 +198,7 @@ function Opportunities() {
                   {o.lastVerifiedAt ? `Verified ${formatDate(o.lastVerifiedAt)}` : "Not yet verified"}
                 </p>
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <OpportunityApplyButton opportunityId={o.id} />
+                  <OpportunityApplyButton opportunity={o} />
                   <div className="flex flex-wrap items-center gap-3">
                     <SourceBadge source={o.source} compact />
                     {o.url && <a className="text-xs text-primary underline" href={o.url} target="_blank" rel="noopener noreferrer">Official page</a>}

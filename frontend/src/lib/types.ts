@@ -62,6 +62,7 @@ export interface Opportunity {
   id: string; type: OpportunityType; title: string; provider: string; description: string | null;
   eligibility: string | null; minEducation: EducationLevel | null; deadline: string | null; isRolling: boolean;
   country: string | null; url: string | null; lastVerifiedAt: string | null; source: SourceRef;
+  documentRequirements: { key: string; description: string; mandatory: boolean; minimumCount: number; acceptedEvidence: unknown }[];
 }
 export type EligibilityResult = "MET" | "NOT_MET" | "REVIEW_REQUIRED";
 export interface ApplicationEligibility {

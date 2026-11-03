@@ -9,7 +9,10 @@ export const programInclude = {
   skills: { include: { skill: true } },
   source: true,
 } satisfies Prisma.ProgramInclude;
-export const opportunityInclude = { source: true } satisfies Prisma.OpportunityInclude;
+export const opportunityInclude = {
+  source: true,
+  requirements: { where: { kind: "document", effectiveUntil: null } },
+} satisfies Prisma.OpportunityInclude;
 
 type SourceRow = {
   id: string;
@@ -78,6 +81,13 @@ export const toOpportunity = (o: Prisma.OpportunityGetPayload<{ include: typeof 
   url: o.url,
   lastVerifiedAt: o.lastVerifiedAt?.toISOString() ?? null,
   source: toSourceRef(o.source),
+  documentRequirements: o.requirements.map((requirement) => ({
+    key: requirement.key,
+    description: requirement.description,
+    mandatory: requirement.mandatory,
+    minimumCount: requirement.minimumCount,
+    acceptedEvidence: requirement.acceptedEvidence,
+  })),
 });
 
 export type OccupationDto = ReturnType<typeof toOccupation>;
