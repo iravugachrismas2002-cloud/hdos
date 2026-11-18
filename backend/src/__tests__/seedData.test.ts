@@ -8,6 +8,7 @@ import { CAREER_ROADMAPS, LEARNING_PATHS, PATHS, stepRows } from "../seed/data/p
 import { SOURCES } from "../seed/data/sources";
 import { OFFICIAL_DOCUMENT_REQUIREMENTS } from "../seed/data/documentRequirements";
 import { OPPORTUNITY_SOURCE_DIRECTORY } from "../seed/data/opportunitySourceDirectory";
+import { ECOSYSTEM, hydrateEcosystem } from "../modules/venture-builder/funding/ecosystem";
 
 const dupes = (values: string[]) => values.filter((v, i) => values.indexOf(v) !== i);
 const sourceBySlug = new Map(SOURCES.map((s) => [s.slug, s]));
@@ -57,6 +58,10 @@ describe("seed: sources", () => {
     for (const needle of ["hec.gov.rw", "mineduc.gov.rw", "rtb.gov.rw", "rp.ac.rw", "mifotra.gov.rw", "statistics.gov.rw", "rdb.rw", "bdf.rw"]) {
       expect(text, needle).toContain(needle);
     }
+    for (const slug of ["rwanda-lmis", "innovate-rwanda", "hanga-central", "rp-ict-innovation-center"]) {
+      expect(sourceBySlug.get(slug)?.isDemo, slug).toBe(false);
+      expect(isHttps(sourceBySlug.get(slug)?.url), slug).toBe(true);
+    }
   });
   it("illustrative editorial sources are flagged isDemo and verified ones are not", () => {
     for (const slug of ["hdos-editorial-education", "hdos-editorial-occupations", "hdos-editorial-opportunities", "hdos-editorial-paths"]) {
@@ -65,6 +70,28 @@ describe("seed: sources", () => {
     for (const slug of ["nisr-rphc5-2022", "nisr-lfs-2024-annual", "nisr-lfs-2024-q4", "hec-hli-register-2025", "rp-programmes-catalogue"]) {
       expect(sourceBySlug.get(slug)?.isDemo, slug).toBe(false);
     }
+  });
+});
+
+describe("seed: Venture Builder ecosystem provenance", () => {
+  it("hydrates every curated ecosystem link from a canonical non-demo source record", () => {
+    expect(dupes(ECOSYSTEM.map((entry) => entry.id))).toEqual([]);
+    const records = SOURCES.map((source) => ({ ...source, retrievedAt: new Date(0) }));
+    const hydrated = hydrateEcosystem(records);
+    expect(hydrated).toHaveLength(ECOSYSTEM.length);
+    for (let i = 0; i < ECOSYSTEM.length; i += 1) {
+      const source = sourceBySlug.get(ECOSYSTEM[i].sourceSlug);
+      expect(source, ECOSYSTEM[i].sourceSlug).toBeDefined();
+      expect(isHttps(source?.url), ECOSYSTEM[i].sourceSlug).toBe(true);
+      expect(source?.isDemo, ECOSYSTEM[i].sourceSlug).toBe(false);
+      expect(hydrated[i].officialUrl).toBe(source?.url);
+      expect(hydrated[i].source.url).toBe(source?.url);
+      expect(hydrated[i].source.retrievedAt).toBe(new Date(0).toISOString());
+    }
+  });
+
+  it("fails explicitly when a required source record is missing", () => {
+    expect(() => hydrateEcosystem([])).toThrow(/Missing seeded ecosystem source/);
   });
 });
 

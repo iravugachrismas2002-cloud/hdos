@@ -6,7 +6,7 @@ import { logger } from "../../lib/logger";
 import { trackUsage } from "../../lib/usage";
 import { PROVIDERS, type CompletionRequest, type Provider, type ProviderId } from "./providers";
 
-export type AiFeature = "explain" | "roadmap" | "guidance" | "skills" | "chat" | "probe";
+export type AiFeature = "explain" | "roadmap" | "guidance" | "skills" | "chat" | "probe" | "venture";
 
 export interface AiResult {
   text: string;

@@ -165,6 +165,8 @@ model User {
   applications ApplicantApplication[]
   applicantDetails ApplicantProfile?
   applicantDocuments ApplicantDocument[]
+  ventureProjects    VentureProject[]
+  ventureMemberships VentureMember[]
 
   @@index([role])
 }
@@ -256,6 +258,7 @@ model District {
   stats    DistrictStat[]
   profiles Profile[]
   institutions Institution[]
+  ventureProjects VentureProject[]
 
   @@index([provinceId])
 }
@@ -309,6 +312,7 @@ model Sector {
   programs    Program[]
   interests   ProfileSector[]
   careerPaths CareerPath[]
+  ventureProjects VentureProject[]
 }
 
 model Skill {
@@ -503,6 +507,10 @@ model ChatMessage {
   content   String
   provider  String?
   goalId    String?
+  /// HDOS AI operating mode that produced/handled the turn (null for legacy messages).
+  mode      String?
+  /// Venture workspace the turn was about; no foreign key so chat history survives venture deletion.
+  ventureId String?
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -573,6 +581,7 @@ model ApplicantDocument {
   verifications DocumentVerification[]
   accesses DocumentAccessLog[]
   applicationSnapshots ApplicationDocument[]
+  ventureLinks VentureDocumentLink[]
   @@index([userId, kind])
   @@index([userId, groupId, version])
 }
@@ -798,4 +807,593 @@ model RoadmapStep {
   roadmap Roadmap @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
 
   @@unique([roadmapId, order])
+}
+
+// ═══════════════════════════ HDOS Venture Builder ═══════════════════════════
+// Venture workspace domain (see docs/VENTURE_BUILDER.md). Reuses User, Sector, District, Opportunity and the
+// document vault (ApplicantDocument) instead of duplicating them. Every child row is isolated by projectId.
+
+enum VentureStatus {
+  DRAFT
+  DISCOVERY
+  VALIDATING
+  VALIDATION_REVIEW
+  FEASIBILITY_REVIEW
+  MVP_PLANNING
+  BUILDING
+  PILOTING
+  LAUNCH_READY
+  ACTIVE
+  PAUSED
+  STOPPED
+  ARCHIVED
+}
+
+enum VentureMemberRole {
+  OWNER
+  ADMIN
+  EDITOR
+  CONTRIBUTOR
+  VIEWER
+  ADVISOR
+}
+
+enum VentureMemberStatus {
+  INVITED
+  ACTIVE
+  DECLINED
+  REMOVED
+}
+
+enum VentureAssumptionCategory {
+  PROBLEM
+  CUSTOMER
+  MARKET
+  WILLINGNESS_TO_PAY
+  TECHNICAL
+  FINANCIAL
+  OPERATIONAL
+  DIFFERENTIATION
+  TEAM
+}
+
+enum VentureRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+/// SUPPORTED / REFUTED can only be set by a person and only when recorded evidence exists.
+enum VentureAssumptionStatus {
+  UNTESTED
+  TESTING
+  SUPPORTED
+  REFUTED
+  INCONCLUSIVE
+}
+
+enum VentureOrigin {
+  USER
+  AI_DRAFT
+}
+
+enum VentureEvidenceType {
+  INTERVIEW
+  SURVEY
+  EXPERIMENT_RESULT
+  OFFICIAL_STATISTIC
+  DOCUMENT
+  OBSERVATION
+  COMPETITOR_RESEARCH
+  TEST_ORDER
+  OTHER
+}
+
+enum VentureEvidenceDirection {
+  SUPPORTS
+  CONTRADICTS
+  NEUTRAL
+}
+
+enum VentureVerificationStatus {
+  USER_REPORTED
+  SOURCE_LINKED
+  VERIFIED
+  DISPUTED
+}
+
+enum VentureExperimentStatus {
+  PLANNED
+  RUNNING
+  COMPLETED
+  CANCELLED
+}
+
+enum VentureExperimentOutcome {
+  SUPPORTS
+  CONTRADICTS
+  INCONCLUSIVE
+}
+
+enum VentureAssessmentKind {
+  VENTURE_READINESS
+  FUNDING_READINESS
+}
+
+enum VentureFeaturePriority {
+  MUST
+  SHOULD
+  COULD
+  WONT
+}
+
+enum VentureWorkStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  BLOCKED
+}
+
+enum VentureSpecStatus {
+  DRAFT
+  APPROVED
+}
+
+enum VentureScenarioCase {
+  CONSERVATIVE
+  BASE
+  UPSIDE
+}
+
+enum VentureLineItemKind {
+  STARTUP_COST
+  FIXED_COST
+  VARIABLE_COST
+}
+
+enum VentureKpiMetric {
+  LEADS
+  ACTIVE_CUSTOMERS
+  CUSTOMER_ACQUISITION_COST
+  REVENUE
+  REPEAT_PURCHASES
+  RETENTION_RATE
+  GROSS_MARGIN
+  MONTHLY_OPERATING_COSTS
+  CASH_RUNWAY_MONTHS
+  COMPLAINTS
+  DELIVERY_TIME_DAYS
+}
+
+enum VentureAiKind {
+  DISCOVERY
+  MVP_SPEC
+  ASSESSMENT_EXPLANATION
+}
+
+enum VentureAiStatus {
+  AI_GENERATED
+  TEMPLATE_FALLBACK
+  AI_SKIPPED
+}
+
+model VentureProject {
+  id                  String        @id @default(cuid())
+  ownerId             String
+  name                String
+  ideaSummary         String?       @db.Text
+  problemStatement    String?       @db.Text
+  sectorId            String?
+  districtId          String?
+  country             String        @default("RW")
+  currency            String        @default("RWF")
+  status              VentureStatus @default(DRAFT)
+  startMode           String?
+  /// The owner must opt in before venture content is sent to an external AI provider.
+  aiProcessingConsent Boolean       @default(false)
+  launchedAt          DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  sector   Sector?   @relation(fields: [sectorId], references: [id], onDelete: SetNull)
+  district District? @relation(fields: [districtId], references: [id], onDelete: SetNull)
+
+  members        VentureMember[]
+  assumptions    VentureAssumption[]
+  sources        VentureResearchSource[]
+  evidence       VentureEvidence[]
+  segments       VentureCustomerSegment[]
+  competitors    VentureCompetitor[]
+  experiments    VentureExperiment[]
+  assessments    VentureAssessment[]
+  businessModels VentureBusinessModel[]
+  lineItems      VentureFinancialLineItem[]
+  scenarios      VentureFinancialScenario[]
+  mvpSpecs       VentureMvpSpecification[]
+  features       VentureFeature[]
+  milestones     VentureMilestone[]
+  activities     VentureActivity[]
+  statusChanges  VentureStatusChange[]
+  aiExecutions   VentureAiExecution[]
+  kpiEntries     VentureKpiEntry[]
+  documentLinks  VentureDocumentLink[]
+
+  @@index([ownerId, updatedAt])
+  @@index([status])
+}
+
+model VentureMember {
+  id             String              @id @default(cuid())
+  projectId      String
+  userId         String
+  role           VentureMemberRole
+  status         VentureMemberStatus @default(INVITED)
+  /// Sections an ADVISOR may read (ignored for other roles).
+  sharedSections String[]
+  invitedById    String?
+  consentedAt    DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId, status])
+}
+
+model VentureAssumption {
+  id          String                    @id @default(cuid())
+  projectId   String
+  statement   String
+  category    VentureAssumptionCategory
+  riskLevel   VentureRiskLevel          @default(MEDIUM)
+  testMethod  String?
+  status      VentureAssumptionStatus   @default(UNTESTED)
+  origin      VentureOrigin             @default(USER)
+  createdById String?
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+
+  project     VentureProject      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  evidence    VentureEvidence[]
+  experiments VentureExperiment[]
+
+  @@index([projectId, category])
+  @@index([projectId, status])
+}
+
+/// Publisher and retrieval time are mandatory so every research item is traceable.
+model VentureResearchSource {
+  id          String    @id @default(cuid())
+  projectId   String
+  title       String
+  publisher   String
+  url         String?
+  publishedAt DateTime?
+  retrievedAt DateTime
+  notes       String?
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  project  VentureProject    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  evidence VentureEvidence[]
+
+  @@index([projectId])
+}
+
+model VentureEvidence {
+  id                 String                    @id @default(cuid())
+  projectId          String
+  assumptionId       String?
+  experimentId       String?
+  evidenceType       VentureEvidenceType
+  direction          VentureEvidenceDirection  @default(NEUTRAL)
+  description        String                    @db.Text
+  sourceId           String?
+  documentId         String?
+  respondentLabel    String?
+  consentGiven       Boolean                   @default(false)
+  consentRecordedAt  DateTime?
+  verificationStatus VentureVerificationStatus @default(USER_REPORTED)
+  observedAt         DateTime                  @default(now())
+  createdById        String?
+  createdAt          DateTime                  @default(now())
+
+  project    VentureProject         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assumption VentureAssumption?     @relation(fields: [assumptionId], references: [id], onDelete: SetNull)
+  experiment VentureExperiment?     @relation(fields: [experimentId], references: [id], onDelete: SetNull)
+  source     VentureResearchSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, assumptionId])
+  @@index([projectId, evidenceType])
+}
+
+model VentureCustomerSegment {
+  id                  String   @id @default(cuid())
+  projectId           String
+  name                String
+  description         String?  @db.Text
+  size                String?
+  needs               String[]
+  currentAlternatives String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model VentureCompetitor {
+  id         String   @id @default(cuid())
+  projectId  String
+  name       String
+  offering   String?  @db.Text
+  priceNote  String?
+  strengths  String?
+  weaknesses String?
+  url        String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model VentureExperiment {
+  id              String                  @id @default(cuid())
+  projectId       String
+  assumptionId    String?
+  hypothesis      String
+  method          String
+  targetSample    Int?
+  successCriteria String
+  startDate       DateTime?
+  endDate         DateTime?
+  status          VentureExperimentStatus @default(PLANNED)
+  createdById     String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  project    VentureProject            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assumption VentureAssumption?        @relation(fields: [assumptionId], references: [id], onDelete: SetNull)
+  results    VentureExperimentResult[]
+  evidence   VentureEvidence[]
+
+  @@index([projectId, status])
+}
+
+model VentureExperimentResult {
+  id           String                   @id @default(cuid())
+  experimentId String
+  observation  String                   @db.Text
+  metricName   String?
+  metricValue  Float?
+  sampleSize   Int?
+  outcome      VentureExperimentOutcome
+  recordedById String?
+  recordedAt   DateTime                 @default(now())
+
+  experiment VentureExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  @@index([experimentId])
+}
+
+/// Deterministic assessment snapshot. The same inputs and engineVersion always yield the same stored numbers.
+model VentureAssessment {
+  id                String                @id @default(cuid())
+  projectId         String
+  kind              VentureAssessmentKind @default(VENTURE_READINESS)
+  assessmentVersion Int
+  engineVersion     String
+  overallScore      Int?
+  overallCoverage   Float
+  maturityLabel     String
+  dimensionScores   Json
+  feasibility       Json?
+  evidenceCoverage  Json
+  missingEvidence   Json
+  risks             Json
+  recommendations   Json
+  inputsDigest      String
+  createdById       String?
+  createdAt         DateTime              @default(now())
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, kind, assessmentVersion])
+}
+
+model VentureBusinessModel {
+  id                    String   @id @default(cuid())
+  projectId             String
+  version               Int
+  customerSegments      String[]
+  valueProposition      String[]
+  channels              String[]
+  customerRelationships String[]
+  revenueStreams        Json
+  keyActivities         String[]
+  keyResources          String[]
+  keyPartners           String[]
+  costStructure         String[]
+  notes                 String?  @db.Text
+  createdById           String?
+  createdAt             DateTime @default(now())
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, version])
+}
+
+/// Editable calculation inputs. Scenario rows freeze a copy so results stay reproducible.
+model VentureFinancialLineItem {
+  id         String              @id @default(cuid())
+  projectId  String
+  kind       VentureLineItemKind
+  label      String
+  /// Major currency units (e.g. RWF). STARTUP_COST is one-off, FIXED_COST monthly, VARIABLE_COST per unit sold.
+  amount     Decimal             @db.Decimal(18, 2)
+  note       String?
+  evidenceId String?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, kind])
+}
+
+model VentureFinancialScenario {
+  id            String              @id @default(cuid())
+  projectId     String
+  groupId       String
+  caseType      VentureScenarioCase
+  currency      String
+  inputs        Json
+  results       Json
+  engineVersion String
+  createdById   String?
+  createdAt     DateTime            @default(now())
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, caseType])
+  @@index([projectId, createdAt])
+}
+
+model VentureMvpSpecification {
+  id          String            @id @default(cuid())
+  projectId   String
+  version     Int
+  status      VentureSpecStatus @default(DRAFT)
+  content     Json
+  generatedBy String
+  changeNote  String?
+  createdById String?
+  createdAt   DateTime          @default(now())
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, version])
+}
+
+model VentureFeature {
+  id                 String                 @id @default(cuid())
+  projectId          String
+  title              String
+  description        String?                @db.Text
+  priority           VentureFeaturePriority @default(SHOULD)
+  status             VentureWorkStatus      @default(TODO)
+  userStory          String?
+  acceptanceCriteria String[]
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, priority])
+}
+
+model VentureMilestone {
+  id          String            @id @default(cuid())
+  projectId   String
+  title       String
+  description String?
+  dueDate     DateTime?
+  status      VentureWorkStatus @default(TODO)
+  assigneeId  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, status])
+}
+
+model VentureActivity {
+  id         String   @id @default(cuid())
+  projectId  String
+  actorId    String?
+  action     String
+  entityType String?
+  entityId   String?
+  summary    String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+}
+
+model VentureStatusChange {
+  id          String        @id @default(cuid())
+  projectId   String
+  fromStatus  VentureStatus
+  toStatus    VentureStatus
+  changedById String
+  reason      String
+  evidenceIds String[]
+  createdAt   DateTime      @default(now())
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+}
+
+model VentureAiExecution {
+  id             String          @id @default(cuid())
+  projectId      String
+  userId         String
+  kind           VentureAiKind
+  /// Client-supplied key that makes retries idempotent: the same key returns the stored result and never re-runs.
+  idempotencyKey String?
+  status         VentureAiStatus
+  provider       String?
+  model          String?
+  schemaValid    Boolean         @default(false)
+  input          Json
+  output         Json
+  createdAt      DateTime        @default(now())
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, idempotencyKey])
+  @@index([projectId, kind, createdAt])
+}
+
+/// Actual operating results, kept apart from projections (financial scenarios) on purpose.
+model VentureKpiEntry {
+  id           String           @id @default(cuid())
+  projectId    String
+  /// Calendar month, YYYY-MM.
+  period       String
+  metric       VentureKpiMetric
+  value        Decimal          @db.Decimal(18, 2)
+  note         String?
+  recordedById String?
+  updatedAt    DateTime         @updatedAt
+
+  project VentureProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, period, metric])
+}
+
+/// Links a vault document to a venture. Only metadata is shared; file bytes stay in the owner's vault.
+model VentureDocumentLink {
+  id         String   @id @default(cuid())
+  projectId  String
+  documentId String
+  label      String
+  linkedById String
+  createdAt  DateTime @default(now())
+
+  project  VentureProject    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  document ApplicantDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, documentId])
 }

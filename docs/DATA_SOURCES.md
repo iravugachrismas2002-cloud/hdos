@@ -40,6 +40,10 @@ Ground rules applied to all data:
 | `rtb-official` | Rwanda TVET Board | https://www.rtb.gov.rw/ | RTB site links to RCA, Rwanda School of Creative Arts and Music, RP, UR | **Verified official** (existence only) | RTB TVET school register (not imported); trade-test/certification routes |
 | `mineduc-official` | MINEDUC | https://www.mineduc.gov.rw/higher-learning-institutions | Context for HLI landscape | Context only, no records depend on it | n/a |
 | `mifotra-labour-official` | MIFOTRA | https://www.mifotra.gov.rw/ | Ministry site context | Context only | Occupation-level labour-market data (none found) |
+| `rwanda-lmis` | MIFOTRA / Rwanda LMIS | https://lmis.rw/ | Labour-market information portal | **Official portal page checked 2026-11-09**; link-only | Individual datasets, coverage and currentness; no LMIS data is imported |
+| `innovate-rwanda` | Innovate Rwanda | https://innovaterwanda.rw/en | Startup ecosystem and support-organisation directory | **Provider page checked 2026-11-09**; link-only | Individual programme availability and directory freshness |
+| `hanga-central` | Hanga Central | https://hangacentral.org/opportunities | Startup opportunities and innovation-ecosystem information | **Provider page checked 2026-11-09**; link-only | Verify each call, eligibility and deadline at its source; no call is marked open from this directory |
+| `rp-ict-innovation-center` | Rwanda Polytechnic | https://ais.rp.ac.rw/iic | ICT Innovation Center incubation and startup intake information | **Official page checked 2026-11-09**; link-only | The page's 13 October 2026 deadline has passed; check for a future intake |
 | `rdb-official` | RDB | https://www.rdb.rw/ | Investment sector list; business registration; district business development units (via businessprocedures.rdb.rw) | Context + 1 opportunity record verified | Other RDB programmes; Chief Skills Office material |
 | `minecofin-nst2-2024-2029` | MINECOFIN | https://www.minecofin.gov.rw/fileadmin/user_upload/Minecofin/Publications/STRATEGIES/NST_2/NST2_2024-2029.pdf | Basis for `Sector.nst2Priority` (NST2 Economic Transformation pillar sections) | **Verified** from the document's contents list and PM statement | Sector-level targets inside the PDF were not extracted. Health/education are NST2 social-pillar areas and are flagged `false` because the flag means "economic-transformation sector" |
 | `institution-official-sites-2026` | Individual providers | (per record) | Kepler College (7 programmes), Rwanda Coding Academy (+programme), CMU-Africa programme names, Chevening, Fulbright (U.S. Embassy), Humphrey, DAAD EPOS, Erasmus Mundus, Mastercard Foundation Scholars at UR and CMU-Africa, Kepler scholarships, Tony Elumelu Foundation | **Verified on provider pages** | Cycle dates (never stored); CMU-Africa durations; exact current eligibility each cycle. DAAD/Erasmus/TEF pages were read through search snippets and the DAAD PDF |
@@ -71,6 +75,9 @@ DAAD EPOS, Erasmus Mundus, TEF).
 - **NEP page is dated 2018.** The NEP components are real but their current status is unconfirmed.
 - **Cycle-specific calls** (Government Study Loan Jan 2027 intake closed 21 Oct 2026; Mastercard Foundation at UR closed;
   Chevening 2027-28 closed; TEF 2026 closed 1 Mar 2026; Fulbright 2027-28 deadline was mid-2026) are described in text only.
+- **Venture Builder ecosystem links** are hydrated from these canonical `DataSource` slugs, including existing NISR,
+  MINEDUC, HEC, RP, RTB, MIFOTRA, RDB and BDF records. The API's `retrievedAt` is the source-record seed load
+  timestamp, not a claim that the external page or its programmes were checked at that time.
 - **Search-snippet reads:** BDF, DAP, Erasmus Mundus, DAAD, TEF, Fulbright and MCF details came from official pages surfaced by
   search results (the authoring tool could not always fetch the page directly). They should be re-read at launch.
 - **Legacy rows:** seven earlier illustrative programmes replaced by verified RP/RCA records are deleted by the seed.

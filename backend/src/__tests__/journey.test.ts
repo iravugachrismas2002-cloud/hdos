@@ -243,13 +243,13 @@ suite("User journey", () => {
     expect(d.totals.users).toBeGreaterThan(0);
     expect(d.totals.roadmaps).toBeGreaterThan(0);
     expect(d.totals.recommendations).toBeGreaterThan(0);
-    expect(d.ai.providers.map((p: { id: string }) => p.id)).toEqual(["gemini", "groq", "openrouter"]);
+    expect(d.ai.providers.map((p: { id: string }) => p.id)).toEqual(["gemini", "deepseek", "groq", "openrouter"]);
     expect(d.ai.requestsTotal).toBeGreaterThan(0);
     expect(d.services.map((s: { name: string }) => s.name)).toEqual(expect.arrayContaining(["API server", "Database", "AI providers"]));
 
     const probe = await request(app).post("/api/admin/monitoring/ai-probe").set("Authorization", `Bearer ${adminToken}`);
     expect(probe.status).toBe(200);
-    expect(probe.body.data.providers).toHaveLength(3);
+    expect(probe.body.data.providers).toHaveLength(4);
   });
 
   it("deletes the account together with chat history", async () => {

@@ -17,6 +17,7 @@ import { insightsRouter } from "./modules/insights/insights.routes";
 import { profileRouter } from "./modules/profile/profile.routes";
 import { applicationsRouter } from "./modules/applications/applications.routes";
 import { portalAdminRouter } from "./modules/applications/admin.routes";
+import { ventureBuilderRouter } from "./modules/venture-builder/venture-builder.routes";
 
 /** Builds the Express app without listening, so tests can drive it with supertest. */
 export const createApp = (): Application => {
@@ -58,6 +59,7 @@ export const createApp = (): Application => {
   app.use("/api/insights", insightsRouter);
   app.use("/api/goals", goalsRouter);
   app.use("/api/chat", chatRouter);
+  app.use("/api/venture-builder", ventureBuilderRouter);
   app.use("/api/analytics", analyticsRouter);
   app.use("/api/admin", adminRouter);
 
